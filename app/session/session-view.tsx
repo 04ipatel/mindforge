@@ -12,6 +12,8 @@ import { generateMathQuestion } from '@/lib/games/math/generator'
 import { getExpectedTimeMs as getMathExpectedTimeMs } from '@/lib/games/math/constants'
 import { generateStroopQuestion } from '@/lib/games/stroop/generator'
 import { getStroopExpectedTimeMs } from '@/lib/games/stroop/constants'
+import { generateSpatialQuestion } from '@/lib/games/spatial/generator'
+import { getSpatialExpectedTimeMs } from '@/lib/games/spatial/constants'
 import type { GameType, Question } from '@/lib/types'
 import { SprintView } from './sprint-view'
 import { SprintComplete } from './sprint-complete'
@@ -25,7 +27,7 @@ type SessionState =
   | { phase: 'playing'; sprint: Sprint }
   | { phase: 'reviewing'; summary: SprintSummary; ratingBefore: number; ratingAfter: number }
 
-const ACTIVE_GAMES: GameType[] = ['math', 'stroop']
+const ACTIVE_GAMES: GameType[] = ['math', 'stroop', 'spatial']
 
 function pickNextGame(currentGame: GameType): GameType {
   const others = ACTIVE_GAMES.filter(g => g !== currentGame)
@@ -33,24 +35,32 @@ function pickNextGame(currentGame: GameType): GameType {
   return Math.random() < 0.6 ? others[Math.floor(Math.random() * others.length)] : currentGame
 }
 
+const GENERATORS: Record<string, (d: number, p?: Set<string>) => Question> = {
+  math: generateMathQuestion,
+  stroop: generateStroopQuestion,
+  spatial: generateSpatialQuestion,
+}
+
 function generateQuestions(gameType: GameType, difficulty: number, count: number): Question[] {
   const prompts = new Set<string>()
   const questions: Question[] = []
-  const generate = gameType === 'math' ? generateMathQuestion : generateStroopQuestion
+  const generate = GENERATORS[gameType]
   for (let i = 0; i < count; i++) {
     const q = generate(difficulty, prompts)
-    // For stroop, dedup key is "word|inkColor", for math it's the prompt
-    const key = gameType === 'stroop'
-      ? `${q.prompt.toLowerCase()}|${q.answer}`
-      : q.prompt
-    prompts.add(key)
+    prompts.add(q.prompt)
     questions.push(q)
   }
   return questions
 }
 
+const EXPECTED_TIME_FNS: Record<string, (d: number) => number> = {
+  math: getMathExpectedTimeMs,
+  stroop: getStroopExpectedTimeMs,
+  spatial: getSpatialExpectedTimeMs,
+}
+
 function getExpectedTimeMs(gameType: GameType, difficulty: number): number {
-  return gameType === 'math' ? getMathExpectedTimeMs(difficulty) : getStroopExpectedTimeMs(difficulty)
+  return EXPECTED_TIME_FNS[gameType](difficulty)
 }
 
 export function SessionView() {
@@ -109,6 +119,7 @@ export function SessionView() {
       setFeedback({ correct: isCorrect, correctAnswer: question.answer })
 
       // After brief delay, transition to next question or sprint complete
+      const feedbackDuration = isCorrect ? 250 : 800
       setTimeout(() => {
         setTransitioning(true)
 
@@ -155,7 +166,7 @@ export function SessionView() {
 
           setTransitioning(false)
         }, 150) // fade out duration
-      }, 500) // feedback display duration
+      }, feedbackDuration)
     },
     [state, currentRating, difficulty, gameType, feedback],
   )

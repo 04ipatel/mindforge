@@ -4,6 +4,7 @@ import type { Sprint } from '@/lib/engine'
 import type { GameType } from '@/lib/types'
 import { MathInput } from './math-input'
 import { StroopInput } from './stroop-input'
+import { SpatialInput } from './spatial-input'
 
 type FeedbackState = {
   correct: boolean
@@ -58,11 +59,16 @@ export function SprintView({ sprint, gameType, currentRating, onAnswer, feedback
         {gameType === 'stroop' && (
           <StroopInput question={question} onSubmit={onAnswer} feedback={feedback} />
         )}
+        {gameType === 'spatial' && (
+          <SpatialInput question={question} onSubmit={onAnswer} feedback={feedback} />
+        )}
       </div>
 
       {/* Keyboard hint */}
       <div className="py-4 text-center text-xs text-text-hint">
-        {gameType === 'math' ? 'type answer · enter to submit' : 'press 1-4 to select the ink color'}
+        {gameType === 'math' && 'type answer · enter to submit'}
+        {gameType === 'stroop' && 'press 1-4 to select the ink color'}
+        {gameType === 'spatial' && 'press 1 for same · 2 for mirror'}
       </div>
     </div>
   )
