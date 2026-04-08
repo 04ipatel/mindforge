@@ -5,6 +5,47 @@
 ## What This Is
 A daily-use cognitive training webapp designed to maximize neuroplasticity and mental development. The user sits down, presses start, and is run through an adaptive session of mental exercises that constantly push their limits. Inspired by mathtrainer.ai (sprint-based math) and Elevate (broad cognitive training), but unified into a single continuous flow.
 
+## Tech Stack
+- **Framework**: Next.js 16 (App Router, Turbopack, React 19)
+- **Language**: TypeScript (strict)
+- **Styling**: Tailwind CSS 4 with `@theme` block for custom properties
+- **Testing**: Vitest + jsdom (50 tests, all pure function logic)
+- **Package Manager**: Bun (never npm)
+- **Deployment**: Vercel (GitHub integration, auto-deploy on push to main)
+
+## Architecture Overview
+
+```
+lib/                    ← Pure logic layer (no React, fully tested)
+  types.ts              ← Core types: GameType, PlayerData, SprintResult, Question, GamePlugin
+  elo.ts                ← Elo rating: expected score, time multiplier, new rating, composite
+  difficulty.ts         ← Adaptive difficulty: adjust, smart decay, starting difficulty
+  storage.ts            ← StorageAdapter interface + LocalStorageAdapter class
+  engine.ts             ← Sprint runner: create, record answer, completion check, summary
+  games/math/
+    constants.ts        ← 13 difficulty levels with expected response times
+    generator.ts        ← Question generator per level (deduplication support)
+
+app/                    ← UI layer (React client components)
+  globals.css           ← Tailwind theme: surface colors, game accents, fonts
+  layout.tsx            ← Root layout with Geist fonts + metadata
+  page.tsx              ← Home screen: composite + per-game ratings, Enter to start
+  session/
+    page.tsx            ← Server shell for /session route
+    session-view.tsx    ← Session state machine: playing ↔ reviewing loop
+    sprint-view.tsx     ← Active sprint: progress bar, question, input
+    sprint-complete.tsx ← Between-sprint stats: accuracy, time, rating change
+    math-input.tsx      ← Keyboard-driven number input with feedback flash
+
+__tests__/              ← Mirrors lib/ structure, Vitest
+```
+
+### Key Architectural Patterns
+- **Shared Engine + Game Plugins**: Engine handles sprints, scoring, difficulty. Each game only defines question generation + input UI component.
+- **Pure logic / UI separation**: All game logic in `lib/` is pure functions with zero React dependencies. UI in `app/` is thin wrappers.
+- **Interface-based storage**: `StorageAdapter` interface allows swapping localStorage for Supabase without touching game logic.
+- **Immutable sprint state**: `recordAnswer()` returns a new Sprint object, no mutation.
+
 ## Core Design Decisions
 
 ### Single Continuous Session (not game picker)
@@ -20,73 +61,76 @@ A daily-use cognitive training webapp designed to maximize neuroplasticity and m
 4. **Task Switching** — 1-4 key select, rule alternation (accent: amber #f59e0b)
 5. **N-Back (Working Memory)** — F/J key press, sequence memory (accent: violet #8b5cf6)
 
-### Architecture: Shared Engine + Game Plugins
-- **Game Engine** (shared): sprint runner, difficulty engine, Elo system
-- **Game Plugins**: each game defines only question generation + input UI
-- **Storage Layer**: interface-based. localStorage now, Supabase later. Games never touch storage directly.
-
 ### Sprint Structure
-- 5-7 questions per sprint
-- Instant feedback → next question immediately
+- 5-7 questions per sprint (randomized count)
+- No duplicate questions within a sprint (generator deduplicates by prompt)
+- After submit: 500ms correctness feedback (green/red) with 150ms fade transition
+- Wrong answers show the correct answer beside the input
 - Sprint complete screen: accuracy, avg time, Elo change
 - Press Enter → next sprint at adjusted difficulty
+- Keyboard input is blocked during feedback to prevent accidental submissions
 
 ### Adaptive Difficulty System
 - Targets 70-85% accuracy (research-backed sweet spot for neuroplasticity)
 - Factors in both accuracy AND response time:
-  - Fast + accurate = bigger difficulty jump
-  - Slow + accurate = hold or slight increase (sweet spot)
-  - Fast + inaccurate = rushing, hold or nudge down
-  - Slow + inaccurate = decrease
+  - Fast + accurate = +2 difficulty levels
+  - Slow + accurate = +1 (sweet spot)
+  - 70-85% accuracy = hold (optimal zone)
+  - 50-70% accuracy = -1
+  - Below 50% = -2
 - Each game defines expected time per difficulty level
 
 ### Smart Decay + Warm-up
 - Decay: 3% per day off, floor at 50% above baseline (`max(0.5, 1 - days × 0.03)`)
-- Warm-up: first 2 sprints always start below calculated level
+- Warm-up: first 2 sprints start 2 and 1 levels below calculated level respectively
 - Daily players get easy on-ramp; returning players get proportionally deeper warm-up
 
 ### Elo Rating System
 - Standard formula: `R_new = R_old + K × (Score - Expected)`
 - K=32 for first 10 sprints, then K=16
-- Per-game ratings + composite (equal weight, 20% each)
+- Per-game ratings + composite (equal weight average across all 5 game types)
 - Score = accuracy × time multiplier (0.8-1.2 based on speed vs expected)
+- Difficulty maps to a rating: `1000 + (level - 1) × 50`
 
-### Research-Backed Difficulty Progressions
-- **Math**: streak-based (3 correct advances, 1 wrong resets). Axes: operand size, carry, operation type, mixed ops
-- **Stroop**: congruence ratio (75%→25%), stimulus set (4→8 colors), response deadline (3000→500ms)
-- **Spatial**: rotation angle (45°→180°), complexity (2D→3D→mirror), time pressure
-- **Switching**: predictability (ABAB→random), cue timing (1200→100ms), rule count (2→4+)
-- **N-Back**: auto-advance at ≥80% correct, decrease at ≤50%. Progression: 1-back → dual 3-back
+### Math Difficulty Levels (13 total)
+1. Single-digit addition (3s)
+2. Single-digit subtraction (3s)
+3. Double-digit add, no carry (5s)
+4. Double-digit add, with carry (6s)
+5. Triple-digit addition (8s)
+6. Multiplication tables 2/5/10 (4s)
+7. Mixed multiplication (5s)
+8. Multi-digit × single-digit (8s)
+9. Division (8s)
+10. Mixed operations (10s)
+11. Square roots (10s)
+12. Fractions (12s)
+13. Multi-step algebra (15s)
 
 ### UI Design
 - Light theme (#fafafa background)
 - Minimal — just the question and your answer, nothing else
-- Math: centered on screen, numbers right-aligned within block, no cursor indicator
+- Math: centered on screen, numbers right-aligned within block, stacked operand layout
 - Keyboard-driven everything: number typing for math, 1-4 keys for choice games, F/J for n-back
+- Supports `-` for negative answers and `/` for fraction answers
 - Complementary accent color per game type
-- Monospace font for math (SF Mono / Cascadia Code)
+- Monospace font for math (SF Mono / Cascadia Code / Geist Mono)
+- Escape key returns to home from any point in a session
 
 ### Data Model
-- `ratings`: per-game Elo + composite
-- `lastPlayed`: timestamp per game (for smart decay)
-- `sessionHistory`: array of sprint results (game, accuracy, avgTime, ratingChange, timestamp)
-- Storage interface: `getPlayerData()`, `saveSprintResult()`, `updateRating()`
+- `PlayerData`: per-game Elo ratings, composite rating, last played timestamps, sprint counts
+- `SprintResult`: game type, difficulty, question/correct counts, avg time, rating before/after, timestamp
+- Storage keys: `mindforge_player` (player data), `mindforge_history` (sprint results array)
+- Storage interface: `getPlayerData()`, `saveSprintResult()`, `updateRating()`, `getSessionHistory()`
 
-### Future (not in v1)
-- Supabase integration for cross-device sync + auth
-- Game rotation engine (activates with 2+ games)
-- Dark theme toggle
-- Session time targets (e.g., "15 min daily")
-- Progress analytics dashboard
+## Implementation Status
+- **v1**: Complete and deployed. Game engine + math plugin + home screen + session flow.
+- **Test coverage**: 50 tests across elo, difficulty, storage, engine, and math generator.
+- **Deployed**: Vercel with GitHub integration (auto-deploy on push to main).
 
 ## Docs
 - Full design spec: `docs/superpowers/specs/2026-04-08-cognitive-trainer-design.md`
 - Implementation plan (v1): `docs/superpowers/plans/2026-04-08-mindforge-v1.md`
-
-## Implementation Status
-- **v1 scope**: Game engine + math plugin + home screen + session flow (16 tasks)
-- **Current**: Plan written, ready for execution
-- **Build order**: vitest setup → types → elo → difficulty → storage → math generator → sprint engine → theme → home screen → session route → math input → sprint view → sprint complete → session state machine → smoke test → cleanup
 
 ## Key Implementation Notes
 - All game logic is pure functions with full test coverage (TDD)
@@ -95,3 +139,12 @@ A daily-use cognitive training webapp designed to maximize neuroplasticity and m
 - Tailwind 4 uses `@theme` block for custom properties (not `theme.extend` in config)
 - Tests use Vitest with jsdom environment
 - Storage adapter takes `Storage` as constructor arg (injectable for testing)
+- Question deduplication uses a `Set<string>` of prompts with up to 50 retry attempts
+
+## Future (not in v1)
+- Supabase integration for cross-device sync + auth
+- Game rotation engine (activates with 2+ games)
+- Additional game modules: Stroop, Spatial, Switching, N-Back
+- Dark theme toggle
+- Session time targets (e.g., "15 min daily")
+- Progress analytics dashboard

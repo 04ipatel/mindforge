@@ -3,12 +3,18 @@
 import { useEffect, useState, useCallback } from 'react'
 import type { Question } from '@/lib/types'
 
+type FeedbackState = {
+  correct: boolean
+  correctAnswer: string
+} | null
+
 type MathInputProps = {
   question: Question
   onSubmit: (answer: string) => void
+  feedback: FeedbackState
 }
 
-export function MathInput({ question, onSubmit }: MathInputProps) {
+export function MathInput({ question, onSubmit, feedback }: MathInputProps) {
   const [value, setValue] = useState('')
 
   // Reset value when question changes
@@ -17,12 +23,13 @@ export function MathInput({ question, onSubmit }: MathInputProps) {
   }, [question])
 
   const handleSubmit = useCallback(() => {
-    if (value.trim() === '') return
+    if (value.trim() === '' || feedback) return
     onSubmit(value)
-  }, [value, onSubmit])
+  }, [value, onSubmit, feedback])
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
+      if (feedback) return
       if (e.key === 'Enter') {
         e.preventDefault()
         handleSubmit()
@@ -46,7 +53,7 @@ export function MathInput({ question, onSubmit }: MathInputProps) {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [handleSubmit, value])
+  }, [handleSubmit, value, feedback])
 
   // Split prompt into lines for right-aligned stacked display
   const parts = question.prompt.split(' ')
@@ -70,10 +77,23 @@ export function MathInput({ question, onSubmit }: MathInputProps) {
             {question.prompt}
           </div>
         )}
-        <div className="border-t-2 border-border mt-2 pt-3">
-          <span className="text-[40px] font-normal tracking-wider text-accent-math">
-            {value || '\u00A0'}
-          </span>
+        <div className={`border-t-2 mt-2 pt-3 ${feedback ? (feedback.correct ? 'border-positive' : 'border-negative') : 'border-border'}`}>
+          {feedback ? (
+            <div className="flex items-center justify-end gap-3">
+              <span className={`text-[40px] font-normal tracking-wider ${feedback.correct ? 'text-positive' : 'text-negative'}`}>
+                {feedback.correct ? value : value}
+              </span>
+              {!feedback.correct && (
+                <span className="text-lg text-text-hint">
+                  {feedback.correctAnswer}
+                </span>
+              )}
+            </div>
+          ) : (
+            <span className="text-[40px] font-normal tracking-wider text-accent-math">
+              {value || '\u00A0'}
+            </span>
+          )}
         </div>
       </div>
     </div>

@@ -4,11 +4,18 @@ import type { Sprint } from '@/lib/engine'
 import type { GameType } from '@/lib/types'
 import { MathInput } from './math-input'
 
+type FeedbackState = {
+  correct: boolean
+  correctAnswer: string
+} | null
+
 type SprintViewProps = {
   sprint: Sprint
   gameType: GameType
   currentRating: number
   onAnswer: (answer: string) => void
+  feedback: FeedbackState
+  transitioning: boolean
 }
 
 const ACCENT_COLORS: Record<GameType, string> = {
@@ -19,7 +26,7 @@ const ACCENT_COLORS: Record<GameType, string> = {
   nback: 'bg-accent-nback',
 }
 
-export function SprintView({ sprint, gameType, currentRating, onAnswer }: SprintViewProps) {
+export function SprintView({ sprint, gameType, currentRating, onAnswer, feedback, transitioning }: SprintViewProps) {
   const question = sprint.questions[sprint.currentIndex]
   const progress = sprint.currentIndex / sprint.questions.length
 
@@ -39,13 +46,13 @@ export function SprintView({ sprint, gameType, currentRating, onAnswer }: Sprint
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-4">
+      <div className={`flex-1 flex flex-col items-center justify-center gap-4 transition-opacity duration-150 ${transitioning ? 'opacity-0' : 'opacity-100'}`}>
         {/* Current rating */}
         <div className="text-sm text-text-hint font-mono">{currentRating}</div>
 
         {/* Game-specific input */}
         {gameType === 'math' && (
-          <MathInput question={question} onSubmit={onAnswer} />
+          <MathInput question={question} onSubmit={onAnswer} feedback={feedback} />
         )}
       </div>
 

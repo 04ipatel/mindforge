@@ -14,12 +14,24 @@ import type { GameType, Question } from '@/lib/types'
 import { SprintView } from './sprint-view'
 import { SprintComplete } from './sprint-complete'
 
+type FeedbackState = {
+  correct: boolean
+  correctAnswer: string
+} | null
+
 type SessionState =
   | { phase: 'playing'; sprint: Sprint }
   | { phase: 'reviewing'; summary: SprintSummary; ratingBefore: number; ratingAfter: number }
 
 function generateQuestions(difficulty: number, count: number): Question[] {
-  return Array.from({ length: count }, () => generateMathQuestion(difficulty))
+  const prompts = new Set<string>()
+  const questions: Question[] = []
+  for (let i = 0; i < count; i++) {
+    const q = generateMathQuestion(difficulty, prompts)
+    prompts.add(q.prompt)
+    questions.push(q)
+  }
+  return questions
 }
 
 export function SessionView() {
@@ -30,6 +42,8 @@ export function SessionView() {
   const [currentRating, setCurrentRating] = useState(1000)
   const [sprintNumber, setSprintNumber] = useState(0)
   const questionStartRef = useRef<number>(Date.now())
+  const [feedback, setFeedback] = useState<FeedbackState>(null)
+  const [transitioning, setTransitioning] = useState(false)
   const gameType: GameType = 'math'
 
   // Initialize session
@@ -61,50 +75,66 @@ export function SessionView() {
 
   const handleAnswer = useCallback(
     (answer: string) => {
-      if (!state || state.phase !== 'playing') return
+      if (!state || state.phase !== 'playing' || feedback) return
 
       const responseTimeMs = Date.now() - questionStartRef.current
+      const question = state.sprint.questions[state.sprint.currentIndex]
+      const isCorrect = answer.trim() === question.answer
       const updated = recordAnswer(state.sprint, answer, responseTimeMs)
 
-      if (isSprintComplete(updated)) {
-        const summary = getSprintSummary(updated)
-        const storage = storageRef.current!
-        const playerData = storage.getPlayerData()
+      // Show feedback
+      setFeedback({ correct: isCorrect, correctAnswer: question.answer })
 
-        const newRating = calculateNewRating({
-          playerRating: currentRating,
-          difficultyRating: 1000 + (difficulty - 1) * 50,
-          accuracy: summary.accuracy,
-          avgResponseTimeMs: summary.avgResponseTimeMs,
-          expectedTimeMs: getExpectedTimeMs(difficulty),
-          sprintCount: playerData.sprintCounts[gameType],
-        })
+      // After brief delay, transition to next question or sprint complete
+      setTimeout(() => {
+        setTransitioning(true)
 
-        storage.updateRating(gameType, newRating)
-        storage.saveSprintResult({
-          gameType,
-          difficulty,
-          questionCount: summary.questionCount,
-          correctCount: summary.correctCount,
-          avgResponseTimeMs: summary.avgResponseTimeMs,
-          ratingBefore: currentRating,
-          ratingAfter: newRating,
-          timestamp: new Date().toISOString(),
-        })
+        setTimeout(() => {
+          setFeedback(null)
 
-        setState({
-          phase: 'reviewing',
-          summary,
-          ratingBefore: currentRating,
-          ratingAfter: newRating,
-        })
-        setCurrentRating(newRating)
-      } else {
-        setState({ phase: 'playing', sprint: updated })
-        questionStartRef.current = Date.now()
-      }
+          if (isSprintComplete(updated)) {
+            const summary = getSprintSummary(updated)
+            const storage = storageRef.current!
+            const playerData = storage.getPlayerData()
+
+            const newRating = calculateNewRating({
+              playerRating: currentRating,
+              difficultyRating: 1000 + (difficulty - 1) * 50,
+              accuracy: summary.accuracy,
+              avgResponseTimeMs: summary.avgResponseTimeMs,
+              expectedTimeMs: getExpectedTimeMs(difficulty),
+              sprintCount: playerData.sprintCounts[gameType],
+            })
+
+            storage.updateRating(gameType, newRating)
+            storage.saveSprintResult({
+              gameType,
+              difficulty,
+              questionCount: summary.questionCount,
+              correctCount: summary.correctCount,
+              avgResponseTimeMs: summary.avgResponseTimeMs,
+              ratingBefore: currentRating,
+              ratingAfter: newRating,
+              timestamp: new Date().toISOString(),
+            })
+
+            setState({
+              phase: 'reviewing',
+              summary,
+              ratingBefore: currentRating,
+              ratingAfter: newRating,
+            })
+            setCurrentRating(newRating)
+          } else {
+            setState({ phase: 'playing', sprint: updated })
+            questionStartRef.current = Date.now()
+          }
+
+          setTransitioning(false)
+        }, 150) // fade out duration
+      }, 500) // feedback display duration
     },
-    [state, currentRating, difficulty, gameType],
+    [state, currentRating, difficulty, gameType, feedback],
   )
 
   const handleContinue = useCallback(() => {
@@ -145,6 +175,8 @@ export function SessionView() {
         gameType={gameType}
         currentRating={currentRating}
         onAnswer={handleAnswer}
+        feedback={feedback}
+        transitioning={transitioning}
       />
     )
   }

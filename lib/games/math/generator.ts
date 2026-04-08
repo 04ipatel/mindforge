@@ -114,9 +114,17 @@ const generators: Record<number, () => { prompt: string; answer: string }> = {
   13: generateLevel13,
 }
 
-export function generateMathQuestion(difficulty: number): Question {
+export function generateMathQuestion(difficulty: number, existingPrompts?: Set<string>): Question {
   const clamped = Math.max(1, Math.min(difficulty, MATH_LEVELS.length))
   const generator = generators[clamped]
-  const { prompt, answer } = generator()
+  let prompt: string
+  let answer: string
+  let attempts = 0
+  do {
+    const result = generator()
+    prompt = result.prompt
+    answer = result.answer
+    attempts++
+  } while (existingPrompts?.has(prompt) && attempts < 50)
   return { prompt, answer, difficulty: clamped, expectedTimeMs: getExpectedTimeMs(clamped) }
 }
