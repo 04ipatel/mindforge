@@ -108,7 +108,7 @@ __tests__/              ← Mirrors lib/ structure, Vitest
 
 **Stroop (8 levels):** Congruence ratio (75% → 15%) × color count (4 → 8). More incongruent stimuli + larger color palettes = harder. Times: 1.2s–3s.
 
-**Spatial (8 levels):** Vertex count (4 → 8) × rotation angles (90° only → any) × mirror detection (off → on). Times: 5s–9s.
+**Spatial (8 levels):** Vertex count (4 → 8) × rotation angles (90° only → any) × mirror ratio (25% → 50%). Mirror is present at all levels to avoid "always same" gameplay at low difficulty. Times: 5s–9s.
 
 ### UI Design
 - Light theme (#fafafa background)
@@ -147,6 +147,47 @@ __tests__/              ← Mirrors lib/ structure, Vitest
 - `Question.metadata` field carries game-specific structured data (stroop colors, spatial shapes)
 - Session-view uses lookup tables (`GENERATORS`, `EXPECTED_TIME_FNS`) for easy game addition
 - Feedback timing is asymmetric: 250ms for correct, 800ms for incorrect answers
+
+## Commenting Standard (MANDATORY)
+
+This codebase is optimized for AI agent navigation. Every file must be heavily commented. When writing or modifying code, always maintain and update comments. This is not optional.
+
+### File Headers (every file)
+Every file must start with a block comment explaining:
+- What this file does and why it exists
+- Its role in the architecture (e.g., "pure logic" vs "UI component")
+- Which files depend on it and which files it depends on
+- Any non-obvious design decisions specific to this file
+
+### Function-Level Comments (every exported function)
+- State the intent: what the function does and WHY it exists
+- Document assumptions, preconditions, constraints
+- Explain non-obvious parameter choices or return values
+- Note edge cases and how they're handled
+
+### Inline Comments
+- Explain "why" for non-obvious logic, but also annotate obvious operations for agent context
+- More is better — agents benefit from redundant context
+- Flag subtle dependencies, gotchas, or workarounds
+- Cross-reference other files with full paths when relevant (e.g., "see lib/elo.ts")
+- Document magic numbers, thresholds, and timing values with rationale
+
+### Cross-File References
+- When mentioning another module, use the full path (e.g., "called by app/session/session-view.tsx")
+- Explain the relationship: calls, implements, depends on, used by
+- Note which functions are entry points vs internal helpers
+
+### Decision Documentation
+- Record design choices and trade-offs inline where they're implemented
+- Briefly note rejected alternatives if relevant
+- Keep comments updated when decisions change — stale comments are worse than no comments
+
+### Rules
+- Use plain `//` comments (not JSDoc `/** */`)
+- Keep comments concise but frequent
+- When modifying code, always update surrounding comments to reflect the change
+- Test files get the same commenting treatment as source files
+- Frame comments as instructions to an unfamiliar agent who will follow them literally
 
 ## Future
 - Additional game modules: Task Switching, N-Back
