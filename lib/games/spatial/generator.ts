@@ -69,8 +69,8 @@ export function generateSpatialQuestion(difficulty: number, existingPrompts?: Se
     shape = generateShape(level.vertexCount)
     rotationAngle = pick(level.rotationAngles)
 
-    // 50/50 same vs mirror (if mirror is available at this level)
-    if (level.hasMirror && Math.random() < 0.5) {
+    // Mirror probability scales with difficulty level
+    if (level.hasMirror && Math.random() < level.mirrorRatio) {
       answer = 'mirror'
       transformedShape = rotatePoints(mirrorPoints(shape), rotationAngle)
     } else {

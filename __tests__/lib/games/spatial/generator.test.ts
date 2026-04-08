@@ -65,21 +65,26 @@ describe('generateSpatialQuestion', () => {
     expect(trans.length).toBe(orig.length)
   })
 
-  it('only produces "same" answers at levels without mirror', () => {
-    for (let i = 0; i < 30; i++) {
-      const q = generateSpatialQuestion(1)
-      expect(q.answer).toBe('same')
-    }
-  })
-
-  it('produces both "same" and "mirror" at levels with mirror', () => {
+  it('produces both "same" and "mirror" at level 1 (25% mirror)', () => {
     const answers = new Set<string>()
-    for (let i = 0; i < 50; i++) {
-      const q = generateSpatialQuestion(5)
+    for (let i = 0; i < 100; i++) {
+      const q = generateSpatialQuestion(1)
       answers.add(q.answer)
     }
     expect(answers.has('same')).toBe(true)
     expect(answers.has('mirror')).toBe(true)
+  })
+
+  it('produces roughly equal same/mirror at high levels (50%)', () => {
+    let mirrorCount = 0
+    const n = 200
+    for (let i = 0; i < n; i++) {
+      const q = generateSpatialQuestion(8)
+      if (q.answer === 'mirror') mirrorCount++
+    }
+    const ratio = mirrorCount / n
+    expect(ratio).toBeGreaterThan(0.3)
+    expect(ratio).toBeLessThan(0.7)
   })
 
   it('increases vertex count with difficulty', () => {
