@@ -25,6 +25,7 @@ export type Question = {
   answer: string
   difficulty: number
   expectedTimeMs: number
+  metadata?: Record<string, unknown>
 }
 
 export type QuestionResult = {

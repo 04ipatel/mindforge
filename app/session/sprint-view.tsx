@@ -3,6 +3,7 @@
 import type { Sprint } from '@/lib/engine'
 import type { GameType } from '@/lib/types'
 import { MathInput } from './math-input'
+import { StroopInput } from './stroop-input'
 
 type FeedbackState = {
   correct: boolean
@@ -54,11 +55,14 @@ export function SprintView({ sprint, gameType, currentRating, onAnswer, feedback
         {gameType === 'math' && (
           <MathInput question={question} onSubmit={onAnswer} feedback={feedback} />
         )}
+        {gameType === 'stroop' && (
+          <StroopInput question={question} onSubmit={onAnswer} feedback={feedback} />
+        )}
       </div>
 
       {/* Keyboard hint */}
       <div className="py-4 text-center text-xs text-text-hint">
-        type answer · enter to submit
+        {gameType === 'math' ? 'type answer · enter to submit' : 'press 1-4 to select the ink color'}
       </div>
     </div>
   )

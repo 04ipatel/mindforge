@@ -2,11 +2,21 @@
 
 import { useEffect, useCallback } from 'react'
 import type { SprintSummary } from '@/lib/engine'
+import type { GameType } from '@/lib/types'
+
+const GAME_LABELS: Record<GameType, string> = {
+  math: 'Math',
+  stroop: 'Stroop',
+  spatial: 'Spatial',
+  switching: 'Switching',
+  nback: 'N-Back',
+}
 
 type SprintCompleteProps = {
   summary: SprintSummary
   ratingBefore: number
   ratingAfter: number
+  gameType: GameType
   onContinue: () => void
 }
 
@@ -14,7 +24,7 @@ function formatTime(ms: number): string {
   return (ms / 1000).toFixed(1) + 's'
 }
 
-export function SprintComplete({ summary, ratingBefore, ratingAfter, onContinue }: SprintCompleteProps) {
+export function SprintComplete({ summary, ratingBefore, ratingAfter, gameType, onContinue }: SprintCompleteProps) {
   const ratingChange = ratingAfter - ratingBefore
   const changeColor = ratingChange >= 0 ? 'text-positive' : 'text-negative'
   const changePrefix = ratingChange >= 0 ? '+' : ''
@@ -57,7 +67,7 @@ export function SprintComplete({ summary, ratingBefore, ratingAfter, onContinue 
         </div>
 
         <div className="bg-surface-alt rounded-xl px-8 py-4 mb-8">
-          <div className="text-sm text-text-hint mb-2">Math Rating</div>
+          <div className="text-sm text-text-hint mb-2">{GAME_LABELS[gameType]} Rating</div>
           <div className="flex items-center justify-center gap-3">
             <span className="text-3xl font-light font-mono">{ratingAfter}</span>
             <span className={`text-base ${changeColor}`}>

@@ -9,7 +9,9 @@ import type { Sprint, SprintSummary } from '@/lib/engine'
 import { adjustDifficulty, calculateStartingDifficulty } from '@/lib/difficulty'
 import { calculateNewRating } from '@/lib/elo'
 import { generateMathQuestion } from '@/lib/games/math/generator'
-import { getExpectedTimeMs } from '@/lib/games/math/constants'
+import { getExpectedTimeMs as getMathExpectedTimeMs } from '@/lib/games/math/constants'
+import { generateStroopQuestion } from '@/lib/games/stroop/generator'
+import { getStroopExpectedTimeMs } from '@/lib/games/stroop/constants'
 import type { GameType, Question } from '@/lib/types'
 import { SprintView } from './sprint-view'
 import { SprintComplete } from './sprint-complete'
@@ -23,15 +25,32 @@ type SessionState =
   | { phase: 'playing'; sprint: Sprint }
   | { phase: 'reviewing'; summary: SprintSummary; ratingBefore: number; ratingAfter: number }
 
-function generateQuestions(difficulty: number, count: number): Question[] {
+const ACTIVE_GAMES: GameType[] = ['math', 'stroop']
+
+function pickNextGame(currentGame: GameType): GameType {
+  const others = ACTIVE_GAMES.filter(g => g !== currentGame)
+  // 60% chance to switch, 40% to stay
+  return Math.random() < 0.6 ? others[Math.floor(Math.random() * others.length)] : currentGame
+}
+
+function generateQuestions(gameType: GameType, difficulty: number, count: number): Question[] {
   const prompts = new Set<string>()
   const questions: Question[] = []
+  const generate = gameType === 'math' ? generateMathQuestion : generateStroopQuestion
   for (let i = 0; i < count; i++) {
-    const q = generateMathQuestion(difficulty, prompts)
-    prompts.add(q.prompt)
+    const q = generate(difficulty, prompts)
+    // For stroop, dedup key is "word|inkColor", for math it's the prompt
+    const key = gameType === 'stroop'
+      ? `${q.prompt.toLowerCase()}|${q.answer}`
+      : q.prompt
+    prompts.add(key)
     questions.push(q)
   }
   return questions
+}
+
+function getExpectedTimeMs(gameType: GameType, difficulty: number): number {
+  return gameType === 'math' ? getMathExpectedTimeMs(difficulty) : getStroopExpectedTimeMs(difficulty)
 }
 
 export function SessionView() {
@@ -41,10 +60,10 @@ export function SessionView() {
   const [difficulty, setDifficulty] = useState(1)
   const [currentRating, setCurrentRating] = useState(1000)
   const [sprintNumber, setSprintNumber] = useState(0)
+  const [gameType, setGameType] = useState<GameType>('math')
   const questionStartRef = useRef<number>(Date.now())
   const [feedback, setFeedback] = useState<FeedbackState>(null)
   const [transitioning, setTransitioning] = useState(false)
-  const gameType: GameType = 'math'
 
   // Initialize session
   useEffect(() => {
@@ -52,12 +71,16 @@ export function SessionView() {
     storageRef.current = storage
     const playerData = storage.getPlayerData()
 
-    const lastPlayed = playerData.lastPlayed[gameType]
+    // Pick initial game randomly
+    const initialGame = ACTIVE_GAMES[Math.floor(Math.random() * ACTIVE_GAMES.length)]
+    setGameType(initialGame)
+
+    const lastPlayed = playerData.lastPlayed[initialGame]
     const daysOff = lastPlayed
       ? Math.floor((Date.now() - new Date(lastPlayed).getTime()) / 86400000)
       : 0
 
-    const peakDifficulty = Math.max(1, Math.round((playerData.ratings[gameType] - 1000) / 50) + 1)
+    const peakDifficulty = Math.max(1, Math.round((playerData.ratings[initialGame] - 1000) / 50) + 1)
     const startDifficulty = calculateStartingDifficulty({
       peakDifficulty,
       daysOff,
@@ -65,10 +88,10 @@ export function SessionView() {
     })
 
     setDifficulty(startDifficulty)
-    setCurrentRating(playerData.ratings[gameType])
+    setCurrentRating(playerData.ratings[initialGame])
 
     const count = generateSprintQuestionCount()
-    const questions = generateQuestions(startDifficulty, count)
+    const questions = generateQuestions(initialGame, startDifficulty, count)
     setState({ phase: 'playing', sprint: createSprint(questions) })
     questionStartRef.current = Date.now()
   }, [])
@@ -102,7 +125,7 @@ export function SessionView() {
               difficultyRating: 1000 + (difficulty - 1) * 50,
               accuracy: summary.accuracy,
               avgResponseTimeMs: summary.avgResponseTimeMs,
-              expectedTimeMs: getExpectedTimeMs(difficulty),
+              expectedTimeMs: getExpectedTimeMs(gameType, difficulty),
               sprintCount: playerData.sprintCounts[gameType],
             })
 
@@ -143,19 +166,45 @@ export function SessionView() {
     const nextSprintNum = sprintNumber + 1
     setSprintNumber(nextSprintNum)
 
-    const newDifficulty = adjustDifficulty({
-      accuracy: state.summary.accuracy,
-      avgResponseTimeMs: state.summary.avgResponseTimeMs,
-      expectedTimeMs: getExpectedTimeMs(difficulty),
-      currentDifficulty: difficulty,
-    })
+    // Possibly switch game
+    const nextGame = pickNextGame(gameType)
+    setGameType(nextGame)
+
+    // Get difficulty for the next game
+    const storage = storageRef.current!
+    const playerData = storage.getPlayerData()
+
+    let newDifficulty: number
+    if (nextGame !== gameType) {
+      // Switching games — calculate starting difficulty for the new game
+      const lastPlayed = playerData.lastPlayed[nextGame]
+      const daysOff = lastPlayed
+        ? Math.floor((Date.now() - new Date(lastPlayed).getTime()) / 86400000)
+        : 0
+      const peakDifficulty = Math.max(1, Math.round((playerData.ratings[nextGame] - 1000) / 50) + 1)
+      newDifficulty = calculateStartingDifficulty({
+        peakDifficulty,
+        daysOff,
+        sprintInSession: nextSprintNum,
+      })
+      setCurrentRating(playerData.ratings[nextGame])
+    } else {
+      // Same game — adjust based on last sprint performance
+      newDifficulty = adjustDifficulty({
+        accuracy: state.summary.accuracy,
+        avgResponseTimeMs: state.summary.avgResponseTimeMs,
+        expectedTimeMs: getExpectedTimeMs(gameType, difficulty),
+        currentDifficulty: difficulty,
+      })
+    }
+
     setDifficulty(newDifficulty)
 
     const count = generateSprintQuestionCount()
-    const questions = generateQuestions(newDifficulty, count)
+    const questions = generateQuestions(nextGame, newDifficulty, count)
     setState({ phase: 'playing', sprint: createSprint(questions) })
     questionStartRef.current = Date.now()
-  }, [state, sprintNumber, difficulty])
+  }, [state, sprintNumber, difficulty, gameType])
 
   // Escape to go home
   useEffect(() => {
@@ -186,6 +235,7 @@ export function SessionView() {
       summary={state.summary}
       ratingBefore={state.ratingBefore}
       ratingAfter={state.ratingAfter}
+      gameType={gameType}
       onContinue={handleContinue}
     />
   )
