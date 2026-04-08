@@ -1,22 +1,57 @@
+/* ============================================================================
+ * app/globals.css — Global Theme & Design Tokens
+ * ============================================================================
+ * PURPOSE: Defines all color tokens, font stacks, and visual constants for
+ *   the entire MindForge app. This is the single source of truth for theming.
+ * ARCHITECTURE: Imported once by app/layout.tsx. Tailwind 4 reads the @theme
+ *   block to generate utility classes (e.g., bg-surface, text-text-primary).
+ * DEPENDENTS: Every component in app/ and any future components that use
+ *   Tailwind utility classes referencing these custom properties.
+ * NOTES:
+ *   - Tailwind 4 uses @theme (not theme.extend in a config file).
+ *   - All color values are CSS custom properties under the hood.
+ *   - Light theme only for v1. Dark theme is a future enhancement.
+ * ============================================================================ */
+
 @import "tailwindcss";
 
 @theme {
+  /* -- Surface & background colors -- */
+  /* #fafafa is the app-wide background — a warm near-white for light theme */
   --color-surface: #fafafa;
+  /* Pure white for card-like containers (sprint complete box, etc.) */
   --color-card: #ffffff;
+
+  /* -- Text hierarchy -- */
+  /* Primary text: near-black for maximum readability */
   --color-text-primary: #1a1a1a;
+  /* Secondary text: muted gray for labels and supporting copy */
   --color-text-secondary: #a1a1aa;
+  /* Hint text: very light gray for placeholder-like content (keyboard hints, timestamps) */
   --color-text-hint: #c4c4c4;
+
+  /* -- Borders & alternate surfaces -- */
   --color-border: #e5e5e5;
+  /* Surface-alt: slightly tinted background for pill badges and rating boxes */
   --color-surface-alt: #f0f0f5;
 
-  --color-accent-math: #6366f1;
-  --color-accent-stroop: #f43f5e;
-  --color-accent-spatial: #06b6d4;
-  --color-accent-switching: #f59e0b;
-  --color-accent-nback: #8b5cf6;
+  /* -- Per-game accent colors --
+   * Each game module has a unique accent color for visual identity.
+   * These are used in progress bars, operators, borders, and highlights.
+   * See: /Users/ishanpatel/Projects/mindforge/CLAUDE.md for the full game list. */
+  --color-accent-math: #6366f1;       /* indigo — Mental Math */
+  --color-accent-stroop: #f43f5e;     /* rose — Stroop (Attention) */
+  --color-accent-spatial: #06b6d4;    /* cyan — Spatial Reasoning */
+  --color-accent-switching: #f59e0b;  /* amber — Task Switching (future) */
+  --color-accent-nback: #8b5cf6;      /* violet — N-Back Working Memory (future) */
 
-  --color-positive: #10b981;
-  --color-negative: #ef4444;
+  /* -- Feedback colors --
+   * Used for correct/incorrect answer feedback, rating changes, accuracy display */
+  --color-positive: #10b981;  /* green — correct answers, positive rating change */
+  --color-negative: #ef4444;  /* red — incorrect answers, negative rating change */
 
+  /* -- Font stacks --
+   * Mono font used for all numeric displays: ratings, answers, timers, prompts
+   * SF Mono preferred on macOS, Cascadia Code as cross-platform fallback */
   --font-mono: 'SF Mono', 'Cascadia Code', ui-monospace, monospace;
 }
