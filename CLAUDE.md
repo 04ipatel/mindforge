@@ -9,7 +9,7 @@ A daily-use cognitive training webapp designed to maximize neuroplasticity and m
 - **Framework**: Next.js 16 (App Router, Turbopack, React 19)
 - **Language**: TypeScript (strict)
 - **Styling**: Tailwind CSS 4 with `@theme` block for custom properties
-- **Testing**: Vitest + jsdom (50 tests, all pure function logic)
+- **Testing**: Vitest + jsdom (74 tests, all pure function logic)
 - **Package Manager**: Bun (never npm)
 - **Deployment**: Vercel (GitHub integration, auto-deploy on push to main)
 
@@ -22,9 +22,16 @@ lib/                    ← Pure logic layer (no React, fully tested)
   difficulty.ts         ← Adaptive difficulty: adjust, smart decay, starting difficulty
   storage.ts            ← StorageAdapter interface + LocalStorageAdapter class
   engine.ts             ← Sprint runner: create, record answer, completion check, summary
-  games/math/
-    constants.ts        ← 13 difficulty levels with expected response times
-    generator.ts        ← Question generator per level (deduplication support)
+  games/
+    math/
+      constants.ts      ← 13 difficulty levels with expected response times
+      generator.ts      ← Question generator per level (deduplication support)
+    stroop/
+      constants.ts      ← 8 difficulty levels: congruence ratio × color count
+      generator.ts      ← Color/word conflict question generator
+    spatial/
+      constants.ts      ← 8 difficulty levels: vertex count × rotation × mirror
+      generator.ts      ← Shape generation, rotation, mirror transforms
 
 app/                    ← UI layer (React client components)
   globals.css           ← Tailwind theme: surface colors, game accents, fonts
@@ -32,10 +39,12 @@ app/                    ← UI layer (React client components)
   page.tsx              ← Home screen: composite + per-game ratings, Enter to start
   session/
     page.tsx            ← Server shell for /session route
-    session-view.tsx    ← Session state machine: playing ↔ reviewing loop
-    sprint-view.tsx     ← Active sprint: progress bar, question, input
-    sprint-complete.tsx ← Between-sprint stats: accuracy, time, rating change
+    session-view.tsx    ← Session state machine: playing ↔ reviewing, game rotation
+    sprint-view.tsx     ← Active sprint: progress bar, question, game-specific input
+    sprint-complete.tsx ← Between-sprint stats: accuracy, time, per-game rating change
     math-input.tsx      ← Keyboard-driven number input with feedback flash
+    stroop-input.tsx    ← 1-4 key color selection with colored word display
+    spatial-input.tsx   ← SVG shape rendering + 1/2 key same/mirror selection
 
 __tests__/              ← Mirrors lib/ structure, Vitest
 ```
@@ -51,7 +60,8 @@ __tests__/              ← Mirrors lib/ structure, Vitest
 ### Single Continuous Session (not game picker)
 - No game selection UI. The app runs a continuous session that rotates through game types.
 - Rotation is unpredictable — keeps the player adapting. Not after every sprint, but at varied intervals.
-- v1 ships with math only. Other games added sequentially. Rotation activates once 2+ games exist.
+- Game rotation is active with 3 games (math, stroop, spatial). 60% chance to switch games between sprints.
+- When switching games, difficulty recalculates based on the new game's rating and decay.
 - Routes: `/` (home — ratings + start), `/session` (continuous play)
 
 ### 5 Game Modules (build order)
@@ -64,7 +74,7 @@ __tests__/              ← Mirrors lib/ structure, Vitest
 ### Sprint Structure
 - 5-7 questions per sprint (randomized count)
 - No duplicate questions within a sprint (generator deduplicates by prompt)
-- After submit: 500ms correctness feedback (green/red) with 150ms fade transition
+- After submit: correctness feedback (250ms correct / 800ms incorrect) with 150ms fade transition
 - Wrong answers show the correct answer beside the input
 - Sprint complete screen: accuracy, avg time, Elo change
 - Press Enter → next sprint at adjusted difficulty
@@ -92,20 +102,13 @@ __tests__/              ← Mirrors lib/ structure, Vitest
 - Score = accuracy × time multiplier (0.8-1.2 based on speed vs expected)
 - Difficulty maps to a rating: `1000 + (level - 1) × 50`
 
-### Math Difficulty Levels (13 total)
-1. Single-digit addition (3s)
-2. Single-digit subtraction (3s)
-3. Double-digit add, no carry (5s)
-4. Double-digit add, with carry (6s)
-5. Triple-digit addition (8s)
-6. Multiplication tables 2/5/10 (4s)
-7. Mixed multiplication (5s)
-8. Multi-digit × single-digit (8s)
-9. Division (8s)
-10. Mixed operations (10s)
-11. Square roots (10s)
-12. Fractions (12s)
-13. Multi-step algebra (15s)
+### Difficulty Progressions
+
+**Math (13 levels):** Single-digit add/sub → double-digit (no carry → carry) → triple-digit → multiplication (tables → mixed → multi-digit) → division → mixed ops → square roots → fractions → algebra. Times: 3s–15s.
+
+**Stroop (8 levels):** Congruence ratio (75% → 15%) × color count (4 → 8). More incongruent stimuli + larger color palettes = harder. Times: 1.2s–3s.
+
+**Spatial (8 levels):** Vertex count (4 → 8) × rotation angles (90° only → any) × mirror detection (off → on). Times: 5s–9s.
 
 ### UI Design
 - Light theme (#fafafa background)
@@ -125,7 +128,8 @@ __tests__/              ← Mirrors lib/ structure, Vitest
 
 ## Implementation Status
 - **v1**: Complete and deployed. Game engine + math plugin + home screen + session flow.
-- **Test coverage**: 50 tests across elo, difficulty, storage, engine, and math generator.
+- **v2**: Stroop and Spatial game modules added. Game rotation active across all 3 games.
+- **Test coverage**: 74 tests across elo, difficulty, storage, engine, math, stroop, and spatial generators.
 - **Deployed**: Vercel with GitHub integration (auto-deploy on push to main).
 
 ## Docs
@@ -140,11 +144,13 @@ __tests__/              ← Mirrors lib/ structure, Vitest
 - Tests use Vitest with jsdom environment
 - Storage adapter takes `Storage` as constructor arg (injectable for testing)
 - Question deduplication uses a `Set<string>` of prompts with up to 50 retry attempts
+- `Question.metadata` field carries game-specific structured data (stroop colors, spatial shapes)
+- Session-view uses lookup tables (`GENERATORS`, `EXPECTED_TIME_FNS`) for easy game addition
+- Feedback timing is asymmetric: 250ms for correct, 800ms for incorrect answers
 
-## Future (not in v1)
+## Future
+- Additional game modules: Task Switching, N-Back
+- Progress analytics dashboard (`/stats` route — rating trends, accuracy over time)
 - Supabase integration for cross-device sync + auth
-- Game rotation engine (activates with 2+ games)
-- Additional game modules: Stroop, Spatial, Switching, N-Back
 - Dark theme toggle
 - Session time targets (e.g., "15 min daily")
-- Progress analytics dashboard
