@@ -1,0 +1,74 @@
+<h2>Architecture Overview</h2>
+<p class="subtitle">Shared Engine + Game Plugin model</p>
+
+<div class="mockup">
+  <div class="mockup-header">System Architecture</div>
+  <div class="mockup-body" style="padding: 24px; font-family: monospace; font-size: 14px; line-height: 1.8;">
+    <div style="text-align: center; margin-bottom: 24px;">
+      <div style="display: inline-block; background: #e8f4f8; border: 2px solid #2196F3; border-radius: 12px; padding: 16px 32px; font-weight: bold; font-size: 16px;">
+        Home Dashboard<br><span style="font-size: 12px; color: #666;">/ route — game selector + composite Elo</span>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-bottom: 8px; color: #999;">▼</div>
+
+    <div style="display: inline-block; background: #fff3e0; border: 2px solid #FF9800; border-radius: 12px; padding: 16px; width: 100%; box-sizing: border-box; margin-bottom: 16px;">
+      <div style="font-weight: bold; font-size: 15px; margin-bottom: 8px;">🎮 Game Engine (shared)</div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 120px; background: #fff; border-radius: 8px; padding: 10px; border: 1px solid #ddd;">
+          <strong>Sprint Runner</strong><br>
+          <span style="font-size: 12px; color: #666;">5-7 questions per sprint, tracks time + accuracy</span>
+        </div>
+        <div style="flex: 1; min-width: 120px; background: #fff; border-radius: 8px; padding: 10px; border: 1px solid #ddd;">
+          <strong>Difficulty Engine</strong><br>
+          <span style="font-size: 12px; color: #666;">Adaptive targeting 70-85% accuracy zone</span>
+        </div>
+        <div style="flex: 1; min-width: 120px; background: #fff; border-radius: 8px; padding: 10px; border: 1px solid #ddd;">
+          <strong>Elo System</strong><br>
+          <span style="font-size: 12px; color: #666;">Per-game + composite rating</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-bottom: 8px; color: #999;">▼ plugs into</div>
+
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px;">
+      <div style="flex: 1; min-width: 100px; background: #e8f5e9; border: 2px solid #4CAF50; border-radius: 10px; padding: 12px; text-align: center;">
+        <strong>Math</strong><br>
+        <span style="font-size: 11px; color: #666;">Number typing<br>Arithmetic → Calc</span>
+      </div>
+      <div style="flex: 1; min-width: 100px; background: #e8f5e9; border: 2px solid #4CAF50; border-radius: 10px; padding: 12px; text-align: center;">
+        <strong>Stroop</strong><br>
+        <span style="font-size: 11px; color: #666;">1-4 key select<br>Color/word conflict</span>
+      </div>
+      <div style="flex: 1; min-width: 100px; background: #e8f5e9; border: 2px solid #4CAF50; border-radius: 10px; padding: 12px; text-align: center;">
+        <strong>Spatial</strong><br>
+        <span style="font-size: 11px; color: #666;">1-4 key select<br>Mental rotation</span>
+      </div>
+      <div style="flex: 1; min-width: 100px; background: #e8f5e9; border: 2px solid #4CAF50; border-radius: 10px; padding: 12px; text-align: center;">
+        <strong>Switching</strong><br>
+        <span style="font-size: 11px; color: #666;">1-4 key select<br>Rule alternation</span>
+      </div>
+      <div style="flex: 1; min-width: 100px; background: #e8f5e9; border: 2px solid #4CAF50; border-radius: 10px; padding: 12px; text-align: center;">
+        <strong>N-Back</strong><br>
+        <span style="font-size: 11px; color: #666;">Y/N key press<br>Sequence memory</span>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-bottom: 8px; color: #999;">▼ persists to</div>
+
+    <div style="display: inline-block; background: #f3e5f5; border: 2px solid #9C27B0; border-radius: 12px; padding: 16px; width: 100%; box-sizing: border-box;">
+      <div style="font-weight: bold; font-size: 15px; margin-bottom: 8px;">💾 Storage Layer</div>
+      <div style="display: flex; gap: 12px;">
+        <div style="flex: 1; background: #fff; border-radius: 8px; padding: 10px; border: 1px solid #ddd;">
+          <strong>Now:</strong> localStorage<br>
+          <span style="font-size: 12px; color: #666;">Interface-based, swap later</span>
+        </div>
+        <div style="flex: 1; background: #fff; border-radius: 8px; padding: 10px; border: 1px solid #ddd; opacity: 0.5;">
+          <strong>Later:</strong> Supabase<br>
+          <span style="font-size: 12px; color: #666;">Same interface, syncs across devices</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

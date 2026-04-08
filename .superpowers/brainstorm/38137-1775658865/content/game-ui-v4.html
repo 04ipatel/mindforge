@@ -1,0 +1,37 @@
+<h2>Game UI: Math Layout (v4)</h2>
+<p class="subtitle">No cursor indicator — just the number</p>
+
+<div class="mockup">
+  <div class="mockup-header">During Sprint (Math)</div>
+  <div class="mockup-body" style="padding: 0; background: #fafafa; color: #1a1a1a; min-height: 450px; display: flex; flex-direction: column;">
+    <!-- Progress bar -->
+    <div style="padding: 12px 20px; display: flex; align-items: center; gap: 12px;">
+      <div style="flex: 1; height: 4px; background: #e5e5e5; border-radius: 2px; overflow: hidden;">
+        <div style="width: 57%; height: 100%; background: #6366f1; border-radius: 2px;"></div>
+      </div>
+      <span style="font-size: 12px; color: #a1a1aa; font-family: monospace;">4/7</span>
+    </div>
+
+    <!-- Main content area — centered on screen -->
+    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 20px;">
+      <!-- Elo badge -->
+      <div style="font-size: 13px; color: #a1a1aa; font-family: monospace;">1247</div>
+
+      <!-- Question block — centered container, right-aligned text inside -->
+      <div style="font-family: 'SF Mono', 'Cascadia Code', monospace; text-align: right; min-width: 160px;">
+        <div style="font-size: 40px; font-weight: 400; letter-spacing: 0.08em; color: #1a1a1a;">347</div>
+        <div style="font-size: 40px; font-weight: 400; letter-spacing: 0.08em; color: #1a1a1a;">
+          <span style="color: #6366f1; margin-right: 12px;">×</span>8
+        </div>
+        <div style="border-top: 2px solid #d4d4d8; margin-top: 8px; padding-top: 12px;">
+          <span style="font-size: 40px; font-weight: 400; letter-spacing: 0.08em; color: #6366f1;">2776</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Keyboard hint -->
+    <div style="padding: 16px; text-align: center; font-size: 11px; color: #c4c4c4;">
+      type answer · enter to submit
+    </div>
+  </div>
+</div>

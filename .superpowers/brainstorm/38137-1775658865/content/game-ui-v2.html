@@ -1,0 +1,162 @@
+<h2>Game UI: Sprint Flow (v2)</h2>
+<p class="subtitle">Light theme, complementary colors, right-aligned math with even font sizing</p>
+
+<div class="split">
+  <!-- During Sprint -->
+  <div class="mockup">
+    <div class="mockup-header">During Sprint (Math)</div>
+    <div class="mockup-body" style="padding: 0; background: #fafafa; color: #1a1a1a; min-height: 400px; display: flex; flex-direction: column;">
+      <!-- Progress bar -->
+      <div style="padding: 12px 20px; display: flex; align-items: center; gap: 12px;">
+        <div style="flex: 1; height: 4px; background: #e5e5e5; border-radius: 2px; overflow: hidden;">
+          <div style="width: 57%; height: 100%; background: #6366f1; border-radius: 2px;"></div>
+        </div>
+        <span style="font-size: 12px; color: #a1a1aa; font-family: monospace;">4/7</span>
+      </div>
+
+      <!-- Main content area -->
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 24px; padding: 20px 48px;">
+        <!-- Elo badge -->
+        <div style="font-size: 13px; color: #a1a1aa; font-family: monospace;">1247</div>
+
+        <!-- Question — right-aligned, even font -->
+        <div style="font-family: 'SF Mono', 'Cascadia Code', monospace; text-align: right; line-height: 1.6;">
+          <div style="font-size: 40px; font-weight: 400; letter-spacing: 0.08em; color: #1a1a1a;">347</div>
+          <div style="font-size: 40px; font-weight: 400; letter-spacing: 0.08em; color: #1a1a1a;">
+            <span style="color: #6366f1; margin-right: 12px;">×</span>8
+          </div>
+          <div style="border-top: 2px solid #d4d4d8; margin-top: 8px; padding-top: 12px;">
+            <span style="font-size: 40px; font-weight: 400; letter-spacing: 0.08em; color: #6366f1;">2776</span><span style="font-size: 40px; color: #6366f1; animation: blink 1s infinite;">|</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Keyboard hint -->
+      <div style="padding: 16px; text-align: center; font-size: 11px; color: #c4c4c4;">
+        type answer · enter to submit
+      </div>
+    </div>
+  </div>
+
+  <!-- Between Sprints -->
+  <div class="mockup">
+    <div class="mockup-header">Between Sprints</div>
+    <div class="mockup-body" style="padding: 0; background: #fafafa; color: #1a1a1a; min-height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <div style="text-align: center; padding: 32px;">
+        <div style="font-size: 14px; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 24px;">Sprint Complete</div>
+
+        <div style="display: flex; gap: 40px; margin-bottom: 32px;">
+          <div>
+            <div style="font-size: 36px; font-weight: 300; color: #10b981;">6/7</div>
+            <div style="font-size: 12px; color: #a1a1aa; margin-top: 4px;">correct</div>
+          </div>
+          <div>
+            <div style="font-size: 36px; font-weight: 300; color: #1a1a1a;">3.2s</div>
+            <div style="font-size: 12px; color: #a1a1aa; margin-top: 4px;">avg time</div>
+          </div>
+        </div>
+
+        <!-- Elo change -->
+        <div style="background: #f0f0f5; border-radius: 12px; padding: 16px 32px; margin-bottom: 32px;">
+          <div style="font-size: 13px; color: #a1a1aa; margin-bottom: 8px;">Math Rating</div>
+          <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+            <span style="font-size: 28px; font-weight: 300; font-family: monospace; color: #1a1a1a;">1247</span>
+            <span style="font-size: 16px; color: #10b981;">+18</span>
+          </div>
+        </div>
+
+        <div style="font-size: 14px; color: #c4c4c4;">press <span style="color: #71717a; background: #f0f0f5; padding: 2px 8px; border-radius: 4px; font-family: monospace;">enter</span> to continue</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 style="margin-top: 40px;">All 5 Game Modes</h2>
+<p class="subtitle">Same light shell, complementary accent per game</p>
+
+<div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px;">
+  <!-- Math — indigo -->
+  <div class="mockup" style="flex: 1; min-width: 180px;">
+    <div class="mockup-header">Math <span style="color: #6366f1;">●</span></div>
+    <div class="mockup-body" style="background: #fafafa; color: #1a1a1a; text-align: right; padding: 24px 20px;">
+      <div style="font-family: monospace; line-height: 1.5;">
+        <div style="font-size: 28px; font-weight: 400;">√144</div>
+        <div style="border-top: 2px solid #e5e5e5; margin-top: 6px; padding-top: 8px;">
+          <span style="font-size: 28px; color: #6366f1;">12|</span>
+        </div>
+      </div>
+      <div style="font-size: 10px; color: #c4c4c4; margin-top: 12px; text-align: center;">type number</div>
+    </div>
+  </div>
+
+  <!-- Stroop — rose -->
+  <div class="mockup" style="flex: 1; min-width: 180px;">
+    <div class="mockup-header">Stroop <span style="color: #f43f5e;">●</span></div>
+    <div class="mockup-body" style="background: #fafafa; color: #1a1a1a; text-align: center; padding: 24px 12px;">
+      <div style="font-size: 32px; font-weight: 700; color: #ef4444; margin-bottom: 20px;">BLUE</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
+        <div style="background: #fff; border: 1px solid #e5e5e5; padding: 8px; border-radius: 6px;"><span style="color: #c4c4c4;">1</span> Red</div>
+        <div style="background: #fff; border: 1px solid #e5e5e5; padding: 8px; border-radius: 6px;"><span style="color: #c4c4c4;">2</span> Blue</div>
+        <div style="background: #fff; border: 1px solid #e5e5e5; padding: 8px; border-radius: 6px;"><span style="color: #c4c4c4;">3</span> Green</div>
+        <div style="background: #fff; border: 1px solid #e5e5e5; padding: 8px; border-radius: 6px;"><span style="color: #c4c4c4;">4</span> Yellow</div>
+      </div>
+      <div style="font-size: 10px; color: #c4c4c4; margin-top: 12px;">press 1-4</div>
+    </div>
+  </div>
+
+  <!-- Spatial — cyan -->
+  <div class="mockup" style="flex: 1; min-width: 180px;">
+    <div class="mockup-header">Spatial <span style="color: #06b6d4;">●</span></div>
+    <div class="mockup-body" style="background: #fafafa; color: #1a1a1a; text-align: center; padding: 24px 12px;">
+      <div style="display: flex; justify-content: center; gap: 24px; margin-bottom: 20px;">
+        <div style="width: 50px; height: 50px; border: 2px solid #06b6d4; transform: rotate(45deg);"></div>
+        <div style="width: 50px; height: 50px; border: 2px solid #06b6d4; transform: rotate(120deg);"></div>
+      </div>
+      <div style="display: flex; justify-content: center; gap: 12px; font-size: 13px;">
+        <div style="background: #fff; border: 1px solid #e5e5e5; padding: 8px 16px; border-radius: 6px;"><span style="color: #c4c4c4;">1</span> Same</div>
+        <div style="background: #fff; border: 1px solid #e5e5e5; padding: 8px 16px; border-radius: 6px;"><span style="color: #c4c4c4;">2</span> Mirror</div>
+      </div>
+      <div style="font-size: 10px; color: #c4c4c4; margin-top: 12px;">press 1-2</div>
+    </div>
+  </div>
+
+  <!-- Switching — amber -->
+  <div class="mockup" style="flex: 1; min-width: 180px;">
+    <div class="mockup-header">Switching <span style="color: #f59e0b;">●</span></div>
+    <div class="mockup-body" style="background: #fafafa; color: #1a1a1a; text-align: center; padding: 24px 12px;">
+      <div style="font-size: 11px; color: #f59e0b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em;">Sort by: Shape</div>
+      <div style="font-size: 40px; margin-bottom: 16px;">🔴</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
+        <div style="background: #fff; border: 1px solid #e5e5e5; padding: 8px; border-radius: 6px;"><span style="color: #c4c4c4;">1</span> Circle</div>
+        <div style="background: #fff; border: 1px solid #e5e5e5; padding: 8px; border-radius: 6px;"><span style="color: #c4c4c4;">2</span> Square</div>
+        <div style="background: #fff; border: 1px solid #e5e5e5; padding: 8px; border-radius: 6px;"><span style="color: #c4c4c4;">3</span> Triangle</div>
+        <div style="background: #fff; border: 1px solid #e5e5e5; padding: 8px; border-radius: 6px;"><span style="color: #c4c4c4;">4</span> Star</div>
+      </div>
+      <div style="font-size: 10px; color: #c4c4c4; margin-top: 12px;">press 1-4</div>
+    </div>
+  </div>
+
+  <!-- N-Back — violet -->
+  <div class="mockup" style="flex: 1; min-width: 180px;">
+    <div class="mockup-header">N-Back <span style="color: #8b5cf6;">●</span></div>
+    <div class="mockup-body" style="background: #fafafa; color: #1a1a1a; text-align: center; padding: 24px 12px;">
+      <div style="font-size: 11px; color: #8b5cf6; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em;">2-back</div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; width: 90px; margin: 0 auto 20px;">
+        <div style="aspect-ratio: 1; background: #f0f0f5; border-radius: 4px;"></div>
+        <div style="aspect-ratio: 1; background: #f0f0f5; border-radius: 4px;"></div>
+        <div style="aspect-ratio: 1; background: #f0f0f5; border-radius: 4px;"></div>
+        <div style="aspect-ratio: 1; background: #8b5cf6; border-radius: 4px;"></div>
+        <div style="aspect-ratio: 1; background: #f0f0f5; border-radius: 4px;"></div>
+        <div style="aspect-ratio: 1; background: #f0f0f5; border-radius: 4px;"></div>
+        <div style="aspect-ratio: 1; background: #f0f0f5; border-radius: 4px;"></div>
+        <div style="aspect-ratio: 1; background: #f0f0f5; border-radius: 4px;"></div>
+        <div style="aspect-ratio: 1; background: #f0f0f5; border-radius: 4px;"></div>
+      </div>
+      <div style="display: flex; justify-content: center; gap: 12px; font-size: 13px;">
+        <div style="background: #fff; border: 1px solid #e5e5e5; padding: 8px 16px; border-radius: 6px;"><span style="color: #c4c4c4;">F</span> Match</div>
+        <div style="background: #fff; border: 1px solid #e5e5e5; padding: 8px 16px; border-radius: 6px;"><span style="color: #c4c4c4;">J</span> No</div>
+      </div>
+      <div style="font-size: 10px; color: #c4c4c4; margin-top: 12px;">press F or J</div>
+    </div>
+  </div>
+</div>
