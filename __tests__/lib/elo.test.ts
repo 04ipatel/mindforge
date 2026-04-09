@@ -99,14 +99,14 @@ describe('calculateNewRating', () => {
 
 // Tests composite rating: equal-weight average across all 5 game types
 describe('calculateCompositeRating', () => {
-  // (1200 + 1000 + 1000 + 1000 + 800) / 5 = 1000
+  // (1200 + 1000 + 1000 + 1000 + 800 + 1000 + 1000) / 7 = 1000
   it('returns average of all ratings', () => {
-    const ratings: Record<GameType, number> = { math: 1200, stroop: 1000, spatial: 1000, switching: 1000, nback: 800 }
+    const ratings: Record<GameType, number> = { math: 1200, stroop: 1000, spatial: 1000, switching: 1000, nback: 800, speed: 1000, memory: 1000 }
     expect(calculateCompositeRating(ratings)).toBe(1000)
   })
   // Ensures default state produces the baseline rating (1000)
   it('returns DEFAULT_RATING when all are default', () => {
-    const ratings: Record<GameType, number> = { math: DEFAULT_RATING, stroop: DEFAULT_RATING, spatial: DEFAULT_RATING, switching: DEFAULT_RATING, nback: DEFAULT_RATING }
+    const ratings: Record<GameType, number> = { math: DEFAULT_RATING, stroop: DEFAULT_RATING, spatial: DEFAULT_RATING, switching: DEFAULT_RATING, nback: DEFAULT_RATING, speed: DEFAULT_RATING, memory: DEFAULT_RATING }
     expect(calculateCompositeRating(ratings)).toBe(DEFAULT_RATING)
   })
 })

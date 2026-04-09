@@ -30,6 +30,8 @@ const GAME_LABELS: Record<GameType, string> = {
   spatial: 'Spatial',
   switching: 'Switching',
   nback: 'N-Back',
+  speed: 'Speed',
+  memory: 'Memory',
 }
 
 // Props received from SessionView

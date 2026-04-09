@@ -57,6 +57,8 @@ const ACCENT_COLORS: Record<GameType, string> = {
   spatial: 'bg-accent-spatial',
   switching: 'bg-accent-switching',
   nback: 'bg-accent-nback',
+  speed: 'bg-accent-speed',
+  memory: 'bg-accent-memory',
 }
 
 // SprintView is the main rendering component during active play.

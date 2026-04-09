@@ -21,12 +21,12 @@
 // type union and GAME_TYPES array include all 5 planned modules so that
 // storage, ratings, and composite calculations are forward-compatible.
 // When adding a new game, add it here AND create its plugin in lib/games/.
-export type GameType = 'math' | 'stroop' | 'spatial' | 'switching' | 'nback'
+export type GameType = 'math' | 'stroop' | 'spatial' | 'switching' | 'nback' | 'speed' | 'memory'
 
 // Ordered array of all game types. Used by lib/elo.ts to compute composite
 // ratings (equal weight across all games) and by createDefaultPlayerData()
 // to initialize per-game fields. Order does not affect gameplay.
-export const GAME_TYPES: GameType[] = ['math', 'stroop', 'spatial', 'switching', 'nback']
+export const GAME_TYPES: GameType[] = ['math', 'stroop', 'spatial', 'switching', 'nback', 'speed', 'memory']
 
 // Persistent player profile stored via lib/storage.ts.
 // - ratings: per-game Elo rating (starts at DEFAULT_RATING = 1000)

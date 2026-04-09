@@ -44,6 +44,8 @@
   --color-accent-spatial: #06b6d4;    /* cyan — Spatial Reasoning */
   --color-accent-switching: #f59e0b;  /* amber — Task Switching (future) */
   --color-accent-nback: #8b5cf6;      /* violet — N-Back Working Memory (future) */
+  --color-accent-speed: #10b981;      /* emerald — Speed Processing (future) */
+  --color-accent-memory: #64748b;     /* slate — Memory (future) */
 
   /* -- Feedback colors --
    * Used for correct/incorrect answer feedback, rating changes, accuracy display */

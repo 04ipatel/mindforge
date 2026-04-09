@@ -33,6 +33,8 @@ const GAME_LABELS: Record<GameType, string> = {
   spatial: 'Spatial',
   switching: 'Switching',
   nback: 'N-Back',
+  speed: 'Speed',
+  memory: 'Memory',
 }
 
 // Tailwind background classes mapping to the accent color for each game.
@@ -44,6 +46,8 @@ const GAME_COLORS: Record<GameType, string> = {
   spatial: 'bg-accent-spatial',
   switching: 'bg-accent-switching',
   nback: 'bg-accent-nback',
+  speed: 'bg-accent-speed',
+  memory: 'bg-accent-memory',
 }
 
 // Converts a lastPlayed ISO timestamp into a human-readable relative string.
