@@ -37,8 +37,9 @@ function rand(min: number, max: number): number {
 // - answer: same as prompt (the correct position number)
 // - metadata: { targetPosition, positionCount, flashDurationMs } for the input component
 export function generateSpeedQuestion(difficulty: number, existingPrompts?: Set<string>): Question {
-  // Clamp difficulty to valid range [1, 8]
-  const clamped = Math.max(1, Math.min(difficulty, SPEED_LEVELS.length))
+  // Clamp difficulty to valid range [1, 8]. Also guard against NaN.
+  const safeDifficulty = Number.isFinite(difficulty) ? difficulty : 1
+  const clamped = Math.max(1, Math.min(safeDifficulty, SPEED_LEVELS.length))
   const level = SPEED_LEVELS[clamped - 1]
 
   let targetPosition: number
