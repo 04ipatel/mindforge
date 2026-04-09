@@ -57,3 +57,11 @@
    * SF Mono preferred on macOS, Cascadia Code as cross-platform fallback */
   --font-mono: 'SF Mono', 'Cascadia Code', ui-monospace, monospace;
 }
+
+/* Shrink animation for the memory game display-phase timer bar.
+ * Animates width from 100% to 0% over the display duration.
+ * Applied inline in memory-input.tsx with the duration set dynamically. */
+@keyframes shrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}
