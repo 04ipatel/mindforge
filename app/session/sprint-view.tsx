@@ -17,6 +17,7 @@
 //   - app/session/math-input.tsx — renders math questions with keyboard input
 //   - app/session/stroop-input.tsx — renders Stroop color/word conflict task
 //   - app/session/spatial-input.tsx — renders spatial rotation/mirror comparison
+//   - app/session/switching-input.tsx — renders task switching classification task
 // DEPENDENTS:
 //   - app/session/session-view.tsx — renders this during phase='playing'
 // ============================================================================
@@ -28,6 +29,7 @@ import type { GameType } from '@/lib/types'
 import { MathInput } from './math-input'
 import { StroopInput } from './stroop-input'
 import { SpatialInput } from './spatial-input'
+import { SwitchingInput } from './switching-input'
 
 // FeedbackState type shared with input components.
 // null = no feedback shown (ready for input).
@@ -116,6 +118,9 @@ export function SprintView({ sprint, gameType, currentRating, onAnswer, feedback
         {gameType === 'spatial' && (
           <SpatialInput question={question} onSubmit={onAnswer} feedback={feedback} />
         )}
+        {gameType === 'switching' && (
+          <SwitchingInput question={question} onSubmit={onAnswer} feedback={feedback} />
+        )}
       </div>
 
       {/* Keyboard hint — displayed at the bottom of the screen.
@@ -125,6 +130,7 @@ export function SprintView({ sprint, gameType, currentRating, onAnswer, feedback
         {gameType === 'math' && 'type answer · enter to submit'}
         {gameType === 'stroop' && 'press 1-4 to select the ink color'}
         {gameType === 'spatial' && 'press 1 for same · 2 for mirror'}
+        {gameType === 'switching' && 'press 1 or 2 to classify'}
       </div>
     </div>
   )

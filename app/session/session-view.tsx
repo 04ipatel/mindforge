@@ -20,6 +20,7 @@
 //   - lib/games/math/ — generateMathQuestion, getExpectedTimeMs
 //   - lib/games/stroop/ — generateStroopQuestion, getStroopExpectedTimeMs
 //   - lib/games/spatial/ — generateSpatialQuestion, getSpatialExpectedTimeMs
+//   - lib/games/switching/ — generateSwitchingSequence, getSwitchingExpectedTimeMs
 //   - app/session/sprint-view.tsx — renders the active sprint UI
 //   - app/session/sprint-complete.tsx — renders between-sprint stats
 // DEPENDENTS:
@@ -48,6 +49,8 @@ import { generateStroopQuestion } from '@/lib/games/stroop/generator'
 import { getStroopExpectedTimeMs } from '@/lib/games/stroop/constants'
 import { generateSpatialQuestion } from '@/lib/games/spatial/generator'
 import { getSpatialExpectedTimeMs } from '@/lib/games/spatial/constants'
+import { generateSwitchingSequence } from '@/lib/games/switching/generator'
+import { getSwitchingExpectedTimeMs } from '@/lib/games/switching/constants'
 import type { GameType, Question } from '@/lib/types'
 import { SprintView } from './sprint-view'
 import { SprintComplete } from './sprint-complete'
@@ -71,7 +74,7 @@ type SessionState =
 // ACTIVE_GAMES defines which game types are available in the current build.
 // Game rotation only activates when this array has 2+ entries.
 // To add a new game: add it here, add to GENERATORS, add to EXPECTED_TIME_FNS.
-const ACTIVE_GAMES: GameType[] = ['math', 'stroop', 'spatial']
+const ACTIVE_GAMES: GameType[] = ['math', 'stroop', 'spatial', 'switching']
 
 // pickNextGame decides whether to switch games between sprints.
 // 60% chance to switch to a different game, 40% chance to stay on the same game.
@@ -84,7 +87,7 @@ function pickNextGame(currentGame: GameType): GameType {
   return Math.random() < 0.6 ? others[Math.floor(Math.random() * others.length)] : currentGame
 }
 
-// GENERATORS maps game type strings to their question generator functions.
+// GENERATORS maps game type strings to their per-question generator functions.
 // Each generator takes (difficulty: number, previousPrompts?: Set<string>)
 // and returns a Question object. The previousPrompts set prevents duplicate
 // questions within a single sprint.
@@ -95,11 +98,24 @@ const GENERATORS: Record<string, (d: number, p?: Set<string>) => Question> = {
   spatial: generateSpatialQuestion,
 }
 
+// BATCH_GENERATORS maps game types that need sequence-aware question generation.
+// Some games (like task switching) generate all questions at once because the
+// question at position N depends on what came before it (e.g., rule switching patterns).
+// These take (difficulty, count) and return the full Question[] array.
+const BATCH_GENERATORS: Record<string, (d: number, count: number) => Question[]> = {
+  switching: generateSwitchingSequence,
+}
+
 // generateQuestions creates an array of unique questions for a sprint.
-// It tracks previously generated prompts via a Set to avoid duplicates.
+// Checks BATCH_GENERATORS first for games that need sequence-aware generation,
+// then falls back to per-question generation via GENERATORS.
 // The count parameter comes from generateSprintQuestionCount() (5-7 questions).
 function generateQuestions(gameType: GameType, difficulty: number, count: number): Question[] {
-  // Track prompts already generated this sprint to prevent duplicates
+  // Batch generators produce the full sequence at once (position-dependent games)
+  if (BATCH_GENERATORS[gameType]) {
+    return BATCH_GENERATORS[gameType](difficulty, count)
+  }
+  // Per-question generation with duplicate tracking
   const prompts = new Set<string>()
   const questions: Question[] = []
   const generate = GENERATORS[gameType]
@@ -121,6 +137,7 @@ const EXPECTED_TIME_FNS: Record<string, (d: number) => number> = {
   math: getMathExpectedTimeMs,
   stroop: getStroopExpectedTimeMs,
   spatial: getSpatialExpectedTimeMs,
+  switching: getSwitchingExpectedTimeMs,
 }
 
 // Convenience wrapper around EXPECTED_TIME_FNS for cleaner call sites
