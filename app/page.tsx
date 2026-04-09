@@ -25,6 +25,8 @@ import { useRouter } from 'next/navigation'
 import { LocalStorageAdapter } from '@/lib/storage'
 import type { PlayerData, GameType } from '@/lib/types'
 import { createDefaultPlayerData, GAME_TYPES } from '@/lib/types'
+import { calculateStreak } from '@/lib/streak'
+import type { StreakInfo } from '@/lib/streak'
 
 // Human-readable labels for each game type, used in the per-game rating cards
 const GAME_LABELS: Record<GameType, string> = {
@@ -71,6 +73,8 @@ export default function Home() {
   const router = useRouter()
   // Initialize with default data (all 1000 ratings) — replaced on mount with actual data
   const [playerData, setPlayerData] = useState<PlayerData>(createDefaultPlayerData())
+  // Streak info: current consecutive days played and longest ever
+  const [streak, setStreak] = useState<StreakInfo>({ current: 0, longest: 0 })
 
   // Load player data from localStorage on mount.
   // This runs client-side only (window.localStorage is not available on server).
@@ -78,6 +82,7 @@ export default function Home() {
   useEffect(() => {
     const storage = new LocalStorageAdapter(window.localStorage)
     setPlayerData(storage.getPlayerData())
+    setStreak(calculateStreak(storage.getSessionHistory()))
   }, [])
 
   // Navigate to the session route — memoized because it's used in the keydown listener
@@ -111,6 +116,15 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Streak display — only shown when the player has an active streak.
+          Positioned between composite rating and per-game ratings for visual hierarchy. */}
+      {streak.current > 0 && (
+        <div className="text-center">
+          <div className="text-3xl font-light font-mono">{streak.current}</div>
+          <div className="text-text-hint text-xs">day streak</div>
+        </div>
+      )}
+
       {/* Per-game ratings — one row per game type showing:
           - Colored dot (game accent color)
           - Game name label
@@ -138,6 +152,14 @@ export default function Home() {
         className="text-text-hint text-sm hover:text-text-secondary transition-colors"
       >
         press <span className="font-mono bg-surface-alt px-2 py-0.5 rounded text-text-secondary">enter</span> to start
+      </button>
+
+      {/* Link to the analytics/stats page — minimal hint style matching the start button */}
+      <button
+        onClick={() => router.push('/stats')}
+        className="text-text-hint text-xs hover:text-text-secondary transition-colors"
+      >
+        view stats
       </button>
     </div>
   )
