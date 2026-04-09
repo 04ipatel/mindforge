@@ -373,11 +373,13 @@ export function SessionView() {
       })
     }
 
-    setDifficulty(newDifficulty)
+    // Guard against NaN difficulty — fall back to 1 if calculation produced bad value
+    const safeDifficulty = Number.isFinite(newDifficulty) ? newDifficulty : 1
+    setDifficulty(safeDifficulty)
 
     // Create the next sprint with 5-7 questions at the new difficulty
     const count = generateSprintQuestionCount()
-    const questions = generateQuestions(nextGame, newDifficulty, count)
+    const questions = generateQuestions(nextGame, safeDifficulty, count)
     setState({ phase: 'playing', sprint: createSprint(questions) })
     // Start the timer for the first question of the new sprint
     questionStartRef.current = Date.now()
