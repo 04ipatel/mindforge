@@ -19,6 +19,7 @@
 //   - app/session/spatial-input.tsx — renders spatial rotation/mirror comparison
 //   - app/session/switching-input.tsx — renders task switching classification task
 //   - app/session/nback-input.tsx — renders N-Back grid and match/no-match buttons
+//   - app/session/speed-input.tsx — renders UFOV speed task with position circles
 // DEPENDENTS:
 //   - app/session/session-view.tsx — renders this during phase='playing'
 // ============================================================================
@@ -32,6 +33,7 @@ import { StroopInput } from './stroop-input'
 import { SpatialInput } from './spatial-input'
 import { SwitchingInput } from './switching-input'
 import { NBackInput } from './nback-input'
+import { SpeedInput } from './speed-input'
 
 // FeedbackState type shared with input components.
 // null = no feedback shown (ready for input).
@@ -126,6 +128,9 @@ export function SprintView({ sprint, gameType, currentRating, onAnswer, feedback
         {gameType === 'nback' && (
           <NBackInput question={question} onSubmit={onAnswer} feedback={feedback} />
         )}
+        {gameType === 'speed' && (
+          <SpeedInput question={question} onSubmit={onAnswer} feedback={feedback} />
+        )}
       </div>
 
       {/* Keyboard hint — displayed at the bottom of the screen.
@@ -137,6 +142,7 @@ export function SprintView({ sprint, gameType, currentRating, onAnswer, feedback
         {gameType === 'spatial' && 'press 1 for same · 2 for mirror'}
         {gameType === 'switching' && 'press 1 or 2 to classify'}
         {gameType === 'nback' && 'F = match · J = no match'}
+        {gameType === 'speed' && 'identify where the target appeared'}
       </div>
     </div>
   )

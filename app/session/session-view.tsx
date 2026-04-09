@@ -22,6 +22,7 @@
 //   - lib/games/spatial/ — generateSpatialQuestion, getSpatialExpectedTimeMs
 //   - lib/games/switching/ — generateSwitchingSequence, getSwitchingExpectedTimeMs
 //   - lib/games/nback/ — generateNBackSequence, getNBackExpectedTimeMs
+//   - lib/games/speed/ — generateSpeedQuestion, getSpeedExpectedTimeMs
 //   - app/session/sprint-view.tsx — renders the active sprint UI
 //   - app/session/sprint-complete.tsx — renders between-sprint stats
 // DEPENDENTS:
@@ -54,6 +55,8 @@ import { generateSwitchingSequence } from '@/lib/games/switching/generator'
 import { getSwitchingExpectedTimeMs } from '@/lib/games/switching/constants'
 import { generateNBackSequence } from '@/lib/games/nback/generator'
 import { getNBackExpectedTimeMs } from '@/lib/games/nback/constants'
+import { generateSpeedQuestion } from '@/lib/games/speed/generator'
+import { getSpeedExpectedTimeMs } from '@/lib/games/speed/constants'
 import type { GameType, Question } from '@/lib/types'
 import { SprintView } from './sprint-view'
 import { SprintComplete } from './sprint-complete'
@@ -77,7 +80,7 @@ type SessionState =
 // ACTIVE_GAMES defines which game types are available in the current build.
 // Game rotation only activates when this array has 2+ entries.
 // To add a new game: add it here, add to GENERATORS, add to EXPECTED_TIME_FNS.
-const ACTIVE_GAMES: GameType[] = ['math', 'stroop', 'spatial', 'switching', 'nback']
+const ACTIVE_GAMES: GameType[] = ['math', 'stroop', 'spatial', 'switching', 'nback', 'speed']
 
 // pickNextGame decides whether to switch games between sprints.
 // 60% chance to switch to a different game, 40% chance to stay on the same game.
@@ -99,6 +102,7 @@ const GENERATORS: Record<string, (d: number, p?: Set<string>) => Question> = {
   math: generateMathQuestion,
   stroop: generateStroopQuestion,
   spatial: generateSpatialQuestion,
+  speed: generateSpeedQuestion,
 }
 
 // BATCH_GENERATORS maps game types that need sequence-aware question generation.
@@ -143,6 +147,7 @@ const EXPECTED_TIME_FNS: Record<string, (d: number) => number> = {
   spatial: getSpatialExpectedTimeMs,
   switching: getSwitchingExpectedTimeMs,
   nback: getNBackExpectedTimeMs,
+  speed: getSpeedExpectedTimeMs,
 }
 
 // Convenience wrapper around EXPECTED_TIME_FNS for cleaner call sites
