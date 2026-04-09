@@ -30,14 +30,9 @@
 
 import { useEffect, useCallback } from 'react'
 import type { Question } from '@/lib/types'
+import type { FeedbackState } from '@/lib/ui-types'
 import { RULE_LABELS } from '@/lib/games/switching/constants'
 import type { SwitchingRuleType } from '@/lib/games/switching/constants'
-
-// FeedbackState shared with parent — null means ready for input
-type FeedbackState = {
-  correct: boolean
-  correctAnswer: string
-} | null
 
 // Props received from SprintView
 type SwitchingInputProps = {

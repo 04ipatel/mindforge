@@ -1,3 +1,5 @@
+import { clampDifficulty } from '@/lib/utils'
+
 // =============================================================================
 // lib/games/stroop/constants.ts — Stroop game difficulty level definitions
 // =============================================================================
@@ -85,12 +87,9 @@ export const STROOP_LEVELS: StroopLevel[] = [
 ]
 
 // Look up the expected response time for a given stroop difficulty level.
-// Clamps to [1, 8] range. Higher difficulties have shorter expected times
-// because the game demands faster automatic processing.
+// Uses clampDifficulty from lib/utils.ts to guard against NaN and out-of-range values.
 export function getStroopExpectedTimeMs(difficulty: number): number {
-  const safe = Number.isFinite(difficulty) ? difficulty : 1
-  const clamped = Math.max(1, Math.min(safe, STROOP_LEVELS.length))
-  return STROOP_LEVELS[clamped - 1].expectedTimeMs
+  return STROOP_LEVELS[clampDifficulty(difficulty, STROOP_LEVELS.length) - 1].expectedTimeMs
 }
 
 // Return the appropriate color set for a given color count.

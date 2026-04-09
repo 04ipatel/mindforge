@@ -30,14 +30,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import type { Question } from '@/lib/types'
-
-// FeedbackState controls the visual feedback shown after answering.
-// null = no feedback (ready for input). When non-null, the divider color changes
-// and the answer area shows the result.
-type FeedbackState = {
-  correct: boolean
-  correctAnswer: string
-} | null
+import type { FeedbackState } from '@/lib/ui-types'
 
 // Props received from SprintView
 type MathInputProps = {

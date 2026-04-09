@@ -10,20 +10,17 @@
 //     (sprint complete screen between sprints)
 //   - Delegates rendering to SprintView (playing) and SprintComplete (reviewing)
 //   - Owns all game-agnostic logic; game-specific behavior lives in lib/games/
-//   - Uses GENERATORS and EXPECTED_TIME_FNS lookup tables so adding a new game
-//     only requires adding one entry to each table
+//   - Uses lib/registry.ts for all game-specific dispatch (generators, expected
+//     times, active game list). Adding a new game only requires the game module
+//     itself and one entry in the registry.
 // DEPENDENCIES:
 //   - lib/storage.ts — LocalStorageAdapter for persisting ratings and history
 //   - lib/engine.ts — createSprint, recordAnswer, isSprintComplete, getSprintSummary
 //   - lib/difficulty.ts — adjustDifficulty, calculateStartingDifficulty
 //   - lib/elo.ts — calculateNewRating (Elo formula with time multiplier)
-//   - lib/games/math/ — generateMathQuestion, getExpectedTimeMs
-//   - lib/games/stroop/ — generateStroopQuestion, getStroopExpectedTimeMs
-//   - lib/games/spatial/ — generateSpatialQuestion, getSpatialExpectedTimeMs
-//   - lib/games/switching/ — generateSwitchingSequence, getSwitchingExpectedTimeMs
-//   - lib/games/nback/ — generateNBackSequence, getNBackExpectedTimeMs
-//   - lib/games/speed/ — generateSpeedQuestion, getSpeedExpectedTimeMs
-//   - lib/games/memory/ — generateMemorySequence, getMemoryExpectedTimeMs
+//   - lib/registry.ts — generateQuestions, getExpectedTimeMs, ACTIVE_GAME_TYPES
+//   - lib/utils.ts — daysSince, eloToDifficulty, difficultyToElo
+//   - lib/ui-types.ts — FeedbackState type
 //   - app/session/sprint-view.tsx — renders the active sprint UI
 //   - app/session/sprint-complete.tsx — renders between-sprint stats
 // DEPENDENTS:
@@ -46,31 +43,12 @@ import { createSprint, recordAnswer, isSprintComplete, getSprintSummary, generat
 import type { Sprint, SprintSummary } from '@/lib/engine'
 import { adjustDifficulty, calculateStartingDifficulty } from '@/lib/difficulty'
 import { calculateNewRating } from '@/lib/elo'
-import { generateMathQuestion } from '@/lib/games/math/generator'
-import { getExpectedTimeMs as getMathExpectedTimeMs } from '@/lib/games/math/constants'
-import { generateStroopQuestion } from '@/lib/games/stroop/generator'
-import { getStroopExpectedTimeMs } from '@/lib/games/stroop/constants'
-import { generateSpatialQuestion } from '@/lib/games/spatial/generator'
-import { getSpatialExpectedTimeMs } from '@/lib/games/spatial/constants'
-import { generateSwitchingSequence } from '@/lib/games/switching/generator'
-import { getSwitchingExpectedTimeMs } from '@/lib/games/switching/constants'
-import { generateNBackSequence } from '@/lib/games/nback/generator'
-import { getNBackExpectedTimeMs } from '@/lib/games/nback/constants'
-import { generateSpeedQuestion } from '@/lib/games/speed/generator'
-import { getSpeedExpectedTimeMs } from '@/lib/games/speed/constants'
-import { generateMemorySequence } from '@/lib/games/memory/generator'
-import { getMemoryExpectedTimeMs } from '@/lib/games/memory/constants'
-import type { GameType, Question } from '@/lib/types'
+import { generateQuestions, getExpectedTimeMs, ACTIVE_GAME_TYPES } from '@/lib/registry'
+import { daysSince, eloToDifficulty, difficultyToElo } from '@/lib/utils'
+import type { GameType } from '@/lib/types'
+import type { FeedbackState } from '@/lib/ui-types'
 import { SprintView } from './sprint-view'
 import { SprintComplete } from './sprint-complete'
-
-// FeedbackState is passed down to input components to show correct/incorrect
-// after the user answers. null means no feedback is being shown (ready for input).
-// correctAnswer is included so incorrect feedback can display the right answer.
-type FeedbackState = {
-  correct: boolean
-  correctAnswer: string
-} | null
 
 // SessionState is a discriminated union representing the two phases of the
 // session state machine:
@@ -80,84 +58,16 @@ type SessionState =
   | { phase: 'playing'; sprint: Sprint }
   | { phase: 'reviewing'; summary: SprintSummary; ratingBefore: number; ratingAfter: number }
 
-// ACTIVE_GAMES defines which game types are available in the current build.
-// Game rotation only activates when this array has 2+ entries.
-// To add a new game: add it here, add to GENERATORS, add to EXPECTED_TIME_FNS.
-const ACTIVE_GAMES: GameType[] = ['math', 'stroop', 'spatial', 'switching', 'nback', 'speed', 'memory']
-
 // pickNextGame decides whether to switch games between sprints.
 // 60% chance to switch to a different game, 40% chance to stay on the same game.
 // When switching, picks uniformly at random from the other available games.
 // This unpredictability is intentional — keeps the player adapting across domains.
+// Uses ACTIVE_GAME_TYPES from lib/registry.ts as the source of available games.
 function pickNextGame(currentGame: GameType): GameType {
-  const others = ACTIVE_GAMES.filter(g => g !== currentGame)
+  const others = ACTIVE_GAME_TYPES.filter(g => g !== currentGame)
   // 0.6 = 60% switch probability — a design decision to keep sessions varied
   // without switching so often that it feels jarring
   return Math.random() < 0.6 ? others[Math.floor(Math.random() * others.length)] : currentGame
-}
-
-// GENERATORS maps game type strings to their per-question generator functions.
-// Each generator takes (difficulty: number, previousPrompts?: Set<string>)
-// and returns a Question object. The previousPrompts set prevents duplicate
-// questions within a single sprint.
-// To add a new game: import its generator and add an entry here.
-const GENERATORS: Record<string, (d: number, p?: Set<string>) => Question> = {
-  math: generateMathQuestion,
-  stroop: generateStroopQuestion,
-  spatial: generateSpatialQuestion,
-  speed: generateSpeedQuestion,
-}
-
-// BATCH_GENERATORS maps game types that need sequence-aware question generation.
-// Some games (like task switching) generate all questions at once because the
-// question at position N depends on what came before it (e.g., rule switching patterns).
-// These take (difficulty, count) and return the full Question[] array.
-const BATCH_GENERATORS: Record<string, (d: number, count: number) => Question[]> = {
-  switching: generateSwitchingSequence,
-  nback: generateNBackSequence,
-  memory: generateMemorySequence,
-}
-
-// generateQuestions creates an array of unique questions for a sprint.
-// Checks BATCH_GENERATORS first for games that need sequence-aware generation,
-// then falls back to per-question generation via GENERATORS.
-// The count parameter comes from generateSprintQuestionCount() (5-7 questions).
-function generateQuestions(gameType: GameType, difficulty: number, count: number): Question[] {
-  // Batch generators produce the full sequence at once (position-dependent games)
-  if (BATCH_GENERATORS[gameType]) {
-    return BATCH_GENERATORS[gameType](difficulty, count)
-  }
-  // Per-question generation with duplicate tracking
-  const prompts = new Set<string>()
-  const questions: Question[] = []
-  const generate = GENERATORS[gameType]
-  for (let i = 0; i < count; i++) {
-    const q = generate(difficulty, prompts)
-    // Add to the set so the next call can avoid this prompt
-    prompts.add(q.prompt)
-    questions.push(q)
-  }
-  return questions
-}
-
-// EXPECTED_TIME_FNS maps game types to functions that return the expected
-// response time in milliseconds for a given difficulty level. Used by:
-// 1. The Elo system to calculate time multiplier (0.8-1.2 based on speed vs expected)
-// 2. The difficulty engine to decide if the player was "fast" or "slow"
-// To add a new game: import its expected time function and add an entry here.
-const EXPECTED_TIME_FNS: Record<string, (d: number) => number> = {
-  math: getMathExpectedTimeMs,
-  stroop: getStroopExpectedTimeMs,
-  spatial: getSpatialExpectedTimeMs,
-  switching: getSwitchingExpectedTimeMs,
-  nback: getNBackExpectedTimeMs,
-  speed: getSpeedExpectedTimeMs,
-  memory: getMemoryExpectedTimeMs,
-}
-
-// Convenience wrapper around EXPECTED_TIME_FNS for cleaner call sites
-function getExpectedTimeMs(gameType: GameType, difficulty: number): number {
-  return EXPECTED_TIME_FNS[gameType](difficulty)
 }
 
 // SessionView is the main session orchestrator component.
@@ -195,22 +105,16 @@ export function SessionView() {
     storageRef.current = storage
     const playerData = storage.getPlayerData()
 
-    // Pick initial game randomly from ACTIVE_GAMES
-    const initialGame = ACTIVE_GAMES[Math.floor(Math.random() * ACTIVE_GAMES.length)]
+    // Pick initial game randomly from ACTIVE_GAME_TYPES (defined in lib/registry.ts)
+    const initialGame = ACTIVE_GAME_TYPES[Math.floor(Math.random() * ACTIVE_GAME_TYPES.length)]
     setGameType(initialGame)
 
-    // Calculate days since last played for smart decay
+    // Calculate days since last played for smart decay using daysSince from lib/utils.ts
     // See CLAUDE.md: decay = 3% per day off, floor at 50% above baseline
-    const lastPlayed = playerData.lastPlayed[initialGame]
-    const daysOff = lastPlayed
-      // 86400000ms = 24 hours — converts ms diff to whole days
-      ? Math.floor((Date.now() - new Date(lastPlayed).getTime()) / 86400000)
-      : 0
+    const daysOff = daysSince(playerData.lastPlayed[initialGame])
 
-    // Convert Elo rating to a peak difficulty level.
-    // Formula: each 50 rating points above 1000 = 1 difficulty level.
-    // Floor of 1 ensures difficulty is always at least 1.
-    const peakDifficulty = Math.max(1, Math.round((playerData.ratings[initialGame] - 1000) / 50) + 1)
+    // Convert Elo rating to a peak difficulty level using eloToDifficulty from lib/utils.ts
+    const peakDifficulty = eloToDifficulty(playerData.ratings[initialGame])
     // calculateStartingDifficulty applies warm-up (first 2 sprints start below peak)
     // and decay (reduces proportionally to days off)
     const startDifficulty = calculateStartingDifficulty({
@@ -275,11 +179,11 @@ export function SessionView() {
             // R_new = R_old + K * (Score - Expected)
             // Score = accuracy * time multiplier (0.8-1.2)
             // K=32 for first 10 sprints, K=16 after that
-            // difficultyRating converts difficulty level to an Elo-scale number:
-            // each difficulty level = 50 Elo points above 1000
+            // difficultyToElo converts difficulty level to an Elo-scale number
+            // (see lib/utils.ts)
             const newRating = calculateNewRating({
               playerRating: currentRating,
-              difficultyRating: 1000 + (difficulty - 1) * 50,
+              difficultyRating: difficultyToElo(difficulty),
               accuracy: summary.accuracy,
               avgResponseTimeMs: summary.avgResponseTimeMs,
               expectedTimeMs: getExpectedTimeMs(gameType, difficulty),
@@ -345,14 +249,10 @@ export function SessionView() {
     if (nextGame !== gameType) {
       // === GAME SWITCH PATH ===
       // When switching to a different game, calculate starting difficulty fresh
-      // using that game's rating, days off, and warm-up logic
-      const lastPlayed = playerData.lastPlayed[nextGame]
-      const daysOff = lastPlayed
-        // 86400000ms = 24 hours
-        ? Math.floor((Date.now() - new Date(lastPlayed).getTime()) / 86400000)
-        : 0
-      // Convert the new game's Elo rating to a peak difficulty level
-      const peakDifficulty = Math.max(1, Math.round((playerData.ratings[nextGame] - 1000) / 50) + 1)
+      // using that game's rating, days off, and warm-up logic.
+      // daysSince and eloToDifficulty are from lib/utils.ts.
+      const daysOff = daysSince(playerData.lastPlayed[nextGame])
+      const peakDifficulty = eloToDifficulty(playerData.ratings[nextGame])
       newDifficulty = calculateStartingDifficulty({
         peakDifficulty,
         daysOff,

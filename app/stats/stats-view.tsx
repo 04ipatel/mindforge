@@ -21,29 +21,7 @@ import type { PlayerData, SprintResult, GameType } from '@/lib/types'
 import { createDefaultPlayerData, GAME_TYPES } from '@/lib/types'
 import { calculateStreak } from '@/lib/streak'
 import type { StreakInfo } from '@/lib/streak'
-
-// Human-readable labels for each game type
-const GAME_LABELS: Record<GameType, string> = {
-  math: 'Math',
-  stroop: 'Stroop',
-  spatial: 'Spatial',
-  switching: 'Switching',
-  nback: 'N-Back',
-  speed: 'Speed',
-  memory: 'Memory',
-}
-
-// Tailwind background classes for per-game accent colors.
-// Correspond to --color-accent-* tokens defined in app/globals.css.
-const GAME_ACCENT_CLASSES: Record<GameType, string> = {
-  math: 'bg-accent-math',
-  stroop: 'bg-accent-stroop',
-  spatial: 'bg-accent-spatial',
-  switching: 'bg-accent-switching',
-  nback: 'bg-accent-nback',
-  speed: 'bg-accent-speed',
-  memory: 'bg-accent-memory',
-}
+import { GAME_REGISTRY } from '@/lib/registry'
 
 // Calculate rating delta for a game over the last 7 days.
 // Takes the ratingAfter of the most recent sprint minus the ratingBefore
@@ -147,9 +125,9 @@ export function StatsView() {
           return (
             <div key={game} className="flex items-center gap-3">
               {/* Accent color dot */}
-              <div className={`w-2 h-2 rounded-full ${GAME_ACCENT_CLASSES[game]}`} />
+              <div className={`w-2 h-2 rounded-full ${GAME_REGISTRY[game].accentClass}`} />
               {/* Game label */}
-              <span className="text-text-secondary text-sm w-20">{GAME_LABELS[game]}</span>
+              <span className="text-text-secondary text-sm w-20">{GAME_REGISTRY[game].name}</span>
               {/* Current rating */}
               <span className="font-mono text-sm w-12 text-right">
                 {playerData.ratings[game]}

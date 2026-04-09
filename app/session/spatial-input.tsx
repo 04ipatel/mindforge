@@ -28,15 +28,10 @@
 
 import { useEffect, useCallback } from 'react'
 import type { Question } from '@/lib/types'
+import type { FeedbackState } from '@/lib/ui-types'
 
 // Point represents a 2D vertex coordinate for shape polygons
 type Point = { x: number; y: number }
-
-// FeedbackState shared with parent — null means ready for input
-type FeedbackState = {
-  correct: boolean
-  correctAnswer: string
-} | null
 
 // Props received from SprintView
 type SpatialInputProps = {

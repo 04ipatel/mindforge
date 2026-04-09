@@ -22,17 +22,7 @@
 import { useEffect, useCallback } from 'react'
 import type { SprintSummary } from '@/lib/engine'
 import type { GameType } from '@/lib/types'
-
-// Human-readable labels for each game type, displayed in the rating box
-const GAME_LABELS: Record<GameType, string> = {
-  math: 'Math',
-  stroop: 'Stroop',
-  spatial: 'Spatial',
-  switching: 'Switching',
-  nback: 'N-Back',
-  speed: 'Speed',
-  memory: 'Memory',
-}
+import { GAME_REGISTRY } from '@/lib/registry'
 
 // Props received from SessionView
 type SprintCompleteProps = {
@@ -111,7 +101,7 @@ export function SprintComplete({ summary, ratingBefore, ratingAfter, gameType, o
             bg-surface-alt gives it a slightly tinted background to stand out. */}
         <div className="bg-surface-alt rounded-xl px-8 py-4 mb-8">
           {/* Game-specific label (e.g., "Math Rating") */}
-          <div className="text-sm text-text-hint mb-2">{GAME_LABELS[gameType]} Rating</div>
+          <div className="text-sm text-text-hint mb-2">{GAME_REGISTRY[gameType].name} Rating</div>
           <div className="flex items-center justify-center gap-3">
             {/* New rating value in large monospace font */}
             <span className="text-3xl font-light font-mono">{ratingAfter}</span>

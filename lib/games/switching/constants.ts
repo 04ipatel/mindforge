@@ -1,3 +1,5 @@
+import { clampDifficulty } from '@/lib/utils'
+
 // =============================================================================
 // lib/games/switching/constants.ts — Task Switching difficulty level definitions
 // =============================================================================
@@ -76,10 +78,7 @@ export const SWITCHING_LEVELS: SwitchingLevel[] = [
 ]
 
 // Look up the expected response time for a given switching difficulty level.
-// Clamps to [1, 8] range. Mid-range levels have the highest expected times
-// because switching cost is most pronounced when first introduced.
+// Uses clampDifficulty from lib/utils.ts to guard against NaN and out-of-range values.
 export function getSwitchingExpectedTimeMs(difficulty: number): number {
-  const safe = Number.isFinite(difficulty) ? difficulty : 1
-  const clamped = Math.max(1, Math.min(safe, SWITCHING_LEVELS.length))
-  return SWITCHING_LEVELS[clamped - 1].expectedTimeMs
+  return SWITCHING_LEVELS[clampDifficulty(difficulty, SWITCHING_LEVELS.length) - 1].expectedTimeMs
 }

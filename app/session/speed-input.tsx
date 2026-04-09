@@ -32,12 +32,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import type { Question } from '@/lib/types'
-
-// FeedbackState shared with parent — null means ready for input
-type FeedbackState = {
-  correct: boolean
-  correctAnswer: string
-} | null
+import type { FeedbackState } from '@/lib/ui-types'
 
 // The three phases of a speed trial
 type Phase = 'fixation' | 'flash' | 'respond'

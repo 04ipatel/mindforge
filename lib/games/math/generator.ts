@@ -19,6 +19,7 @@
 
 import type { Question } from '@/lib/types'
 import { MATH_LEVELS, getExpectedTimeMs } from './constants'
+import { clampDifficulty } from '@/lib/utils'
 
 // Generate a random integer in [min, max] inclusive.
 // Used by all level generators for operand generation.
@@ -215,9 +216,8 @@ const generators: Record<number, () => { prompt: string; answer: string }> = {
 // Returns a Question object with prompt, answer, difficulty, and expectedTimeMs.
 // The expectedTimeMs comes from the constants file and feeds into Elo/difficulty calculations.
 export function generateMathQuestion(difficulty: number, existingPrompts?: Set<string>): Question {
-  // Clamp difficulty to valid range [1, 13]. Guard against NaN.
-  const safeDifficulty = Number.isFinite(difficulty) ? difficulty : 1
-  const clamped = Math.max(1, Math.min(safeDifficulty, MATH_LEVELS.length))
+  // Clamp difficulty to valid range [1, 13] using shared utility
+  const clamped = clampDifficulty(difficulty, MATH_LEVELS.length)
   const generator = generators[clamped]
   let prompt: string
   let answer: string

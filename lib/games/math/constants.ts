@@ -1,3 +1,5 @@
+import { clampDifficulty } from '@/lib/utils'
+
 // =============================================================================
 // lib/games/math/constants.ts — Math game difficulty level definitions
 // =============================================================================
@@ -57,11 +59,8 @@ export const MATH_LEVELS: MathLevel[] = [
 ]
 
 // Look up the expected response time for a given difficulty level.
-// Clamps to the maximum level (13) if a higher value is passed — this handles
-// cases where the difficulty engine overshoots the math game's max level.
-// Uses 1-based indexing: difficulty 1 → MATH_LEVELS[0].
+// Uses clampDifficulty from lib/utils.ts to guard against NaN and out-of-range values.
+// Uses 1-based indexing: difficulty 1 -> MATH_LEVELS[0].
 export function getExpectedTimeMs(difficulty: number): number {
-  const safe = Number.isFinite(difficulty) ? difficulty : 1
-  const clamped = Math.max(1, Math.min(safe, MATH_LEVELS.length))
-  return MATH_LEVELS[clamped - 1].expectedTimeMs
+  return MATH_LEVELS[clampDifficulty(difficulty, MATH_LEVELS.length) - 1].expectedTimeMs
 }

@@ -25,6 +25,7 @@
 
 import type { Question } from '@/lib/types'
 import { MEMORY_LEVELS, getMemoryExpectedTimeMs } from './constants'
+import { clampDifficulty } from '@/lib/utils'
 
 // Generate a random digit sequence of the given length.
 // Digits are 0-9 inclusive, chosen uniformly at random.
@@ -60,9 +61,8 @@ function sequenceToPrompt(seq: number[]): string {
 // 2. Generate random digit sequences, re-rolling duplicates
 // 3. Return array of Questions with sequence and displayDurationMs in metadata
 export function generateMemorySequence(difficulty: number, count: number): Question[] {
-  // Clamp difficulty to valid range [1, 8]. Guard against NaN.
-  const safeDifficulty = Number.isFinite(difficulty) ? difficulty : 1
-  const clamped = Math.max(1, Math.min(safeDifficulty, MEMORY_LEVELS.length))
+  // Clamp difficulty to valid range [1, 8] using shared utility
+  const clamped = clampDifficulty(difficulty, MEMORY_LEVELS.length)
   const level = MEMORY_LEVELS[clamped - 1]
 
   const questions: Question[] = []

@@ -1,3 +1,5 @@
+import { clampDifficulty } from '@/lib/utils'
+
 // =============================================================================
 // lib/games/spatial/constants.ts — Spatial reasoning difficulty level definitions
 // =============================================================================
@@ -60,10 +62,7 @@ export const SPATIAL_LEVELS: SpatialLevel[] = [
 ]
 
 // Look up the expected response time for a given spatial difficulty level.
-// Clamps to [1, 8] range. Higher difficulties have longer expected times
-// because more complex polygons require more mental rotation time.
+// Uses clampDifficulty from lib/utils.ts to guard against NaN and out-of-range values.
 export function getSpatialExpectedTimeMs(difficulty: number): number {
-  const safe = Number.isFinite(difficulty) ? difficulty : 1
-  const clamped = Math.max(1, Math.min(safe, SPATIAL_LEVELS.length))
-  return SPATIAL_LEVELS[clamped - 1].expectedTimeMs
+  return SPATIAL_LEVELS[clampDifficulty(difficulty, SPATIAL_LEVELS.length) - 1].expectedTimeMs
 }

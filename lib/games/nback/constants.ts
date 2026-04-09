@@ -1,3 +1,5 @@
+import { clampDifficulty } from '@/lib/utils'
+
 // =============================================================================
 // lib/games/nback/constants.ts — N-Back game difficulty level definitions
 // =============================================================================
@@ -56,9 +58,7 @@ export const NBACK_LEVELS: NBackLevel[] = [
 ]
 
 // Look up the expected response time for a given N-Back difficulty level.
-// Clamps to [1, 8] range. Used by the Elo system for time multiplier calculation.
+// Uses clampDifficulty from lib/utils.ts to guard against NaN and out-of-range values.
 export function getNBackExpectedTimeMs(difficulty: number): number {
-  const safe = Number.isFinite(difficulty) ? difficulty : 1
-  const clamped = Math.max(1, Math.min(safe, NBACK_LEVELS.length))
-  return NBACK_LEVELS[clamped - 1].expectedTimeMs
+  return NBACK_LEVELS[clampDifficulty(difficulty, NBACK_LEVELS.length) - 1].expectedTimeMs
 }

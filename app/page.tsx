@@ -27,30 +27,7 @@ import type { PlayerData, GameType } from '@/lib/types'
 import { createDefaultPlayerData, GAME_TYPES } from '@/lib/types'
 import { calculateStreak } from '@/lib/streak'
 import type { StreakInfo } from '@/lib/streak'
-
-// Human-readable labels for each game type, used in the per-game rating cards
-const GAME_LABELS: Record<GameType, string> = {
-  math: 'Math',
-  stroop: 'Stroop',
-  spatial: 'Spatial',
-  switching: 'Switching',
-  nback: 'N-Back',
-  speed: 'Speed',
-  memory: 'Memory',
-}
-
-// Tailwind background classes mapping to the accent color for each game.
-// These correspond to --color-accent-* tokens in app/globals.css.
-// Used for the small colored dot next to each game's rating.
-const GAME_COLORS: Record<GameType, string> = {
-  math: 'bg-accent-math',
-  stroop: 'bg-accent-stroop',
-  spatial: 'bg-accent-spatial',
-  switching: 'bg-accent-switching',
-  nback: 'bg-accent-nback',
-  speed: 'bg-accent-speed',
-  memory: 'bg-accent-memory',
-}
+import { GAME_REGISTRY } from '@/lib/registry'
 
 // Converts a lastPlayed ISO timestamp into a human-readable relative string.
 // Returns "never" if the game has not been played, otherwise "Xm ago", "Xh ago", or "Xd ago".
@@ -135,8 +112,8 @@ export default function Home() {
         {GAME_TYPES.map((game) => (
           <div key={game} className="flex items-center gap-2">
             {/* Small colored circle identifying the game type */}
-            <div className={`w-2 h-2 rounded-full ${GAME_COLORS[game]}`} />
-            <span className="text-text-secondary text-sm">{GAME_LABELS[game]}</span>
+            <div className={`w-2 h-2 rounded-full ${GAME_REGISTRY[game].accentClass}`} />
+            <span className="text-text-secondary text-sm">{GAME_REGISTRY[game].name}</span>
             <span className="font-mono text-sm">{playerData.ratings[game]}</span>
             <span className="text-text-hint text-xs">
               {formatLastPlayed(playerData.lastPlayed[game])}

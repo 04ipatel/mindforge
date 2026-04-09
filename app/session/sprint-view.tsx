@@ -29,6 +29,8 @@
 
 import type { Sprint } from '@/lib/engine'
 import type { GameType } from '@/lib/types'
+import type { FeedbackState } from '@/lib/ui-types'
+import { GAME_REGISTRY } from '@/lib/registry'
 import { MathInput } from './math-input'
 import { StroopInput } from './stroop-input'
 import { SpatialInput } from './spatial-input'
@@ -36,15 +38,6 @@ import { SwitchingInput } from './switching-input'
 import { NBackInput } from './nback-input'
 import { SpeedInput } from './speed-input'
 import { MemoryInput } from './memory-input'
-
-// FeedbackState type shared with input components.
-// null = no feedback shown (ready for input).
-// When non-null, input components display correct/incorrect visual state
-// and block further input until feedback clears.
-type FeedbackState = {
-  correct: boolean
-  correctAnswer: string
-} | null
 
 // Props passed from SessionView — this component is a stateless renderer
 type SprintViewProps = {
@@ -56,17 +49,17 @@ type SprintViewProps = {
   transitioning: boolean
 }
 
-// Maps each game type to its Tailwind accent background class.
-// Used for the progress bar fill color — each game has a distinct color identity.
-// These classes reference --color-accent-* tokens from app/globals.css.
-const ACCENT_COLORS: Record<GameType, string> = {
-  math: 'bg-accent-math',
-  stroop: 'bg-accent-stroop',
-  spatial: 'bg-accent-spatial',
-  switching: 'bg-accent-switching',
-  nback: 'bg-accent-nback',
-  speed: 'bg-accent-speed',
-  memory: 'bg-accent-memory',
+// Component map: maps each game type to its React input component.
+// Used for dynamic rendering in place of a 7-way conditional chain.
+// To add a new game: add its input component import above and add an entry here.
+const INPUT_COMPONENTS: Record<GameType, React.ComponentType<{ question: import('@/lib/types').Question; onSubmit: (answer: string) => void; feedback: FeedbackState }>> = {
+  math: MathInput,
+  stroop: StroopInput,
+  spatial: SpatialInput,
+  switching: SwitchingInput,
+  nback: NBackInput,
+  speed: SpeedInput,
+  memory: MemoryInput,
 }
 
 // SprintView is the main rendering component during active play.
@@ -93,7 +86,7 @@ export function SprintView({ sprint, gameType, currentRating, onAnswer, feedback
               transition-all duration-200 provides a smooth slide animation
               when advancing to the next question. */}
           <div
-            className={`h-full ${ACCENT_COLORS[gameType]} rounded-full transition-all duration-200`}
+            className={`h-full ${GAME_REGISTRY[gameType].accentClass} rounded-full transition-all duration-200`}
             style={{ width: `${progress * 100}%` }}
           />
         </div>
@@ -111,44 +104,21 @@ export function SprintView({ sprint, gameType, currentRating, onAnswer, feedback
         {/* Current Elo rating displayed above the question as a small monospace number */}
         <div className="text-sm text-text-hint font-mono">{currentRating}</div>
 
-        {/* Game-specific input component — selected based on gameType.
-            Each component handles its own keyboard events and renders the question
-            in its game-appropriate format. They all share the same prop interface:
-            question (Question), onSubmit (answer callback), feedback (FeedbackState). */}
-        {gameType === 'math' && (
-          <MathInput question={question} onSubmit={onAnswer} feedback={feedback} />
-        )}
-        {gameType === 'stroop' && (
-          <StroopInput question={question} onSubmit={onAnswer} feedback={feedback} />
-        )}
-        {gameType === 'spatial' && (
-          <SpatialInput question={question} onSubmit={onAnswer} feedback={feedback} />
-        )}
-        {gameType === 'switching' && (
-          <SwitchingInput question={question} onSubmit={onAnswer} feedback={feedback} />
-        )}
-        {gameType === 'nback' && (
-          <NBackInput question={question} onSubmit={onAnswer} feedback={feedback} />
-        )}
-        {gameType === 'speed' && (
-          <SpeedInput question={question} onSubmit={onAnswer} feedback={feedback} />
-        )}
-        {gameType === 'memory' && (
-          <MemoryInput question={question} onSubmit={onAnswer} feedback={feedback} />
-        )}
+        {/* Game-specific input component — dynamically selected from INPUT_COMPONENTS
+            based on gameType. Each component handles its own keyboard events and renders
+            the question in its game-appropriate format. They all share the same prop
+            interface: question (Question), onSubmit (answer callback), feedback (FeedbackState). */}
+        {(() => {
+          const InputComponent = INPUT_COMPONENTS[gameType]
+          return <InputComponent question={question} onSubmit={onAnswer} feedback={feedback} />
+        })()}
       </div>
 
       {/* Keyboard hint — displayed at the bottom of the screen.
           Each game type has different controls, so the hint text varies.
           Math: type digits + enter. Stroop: 1-4 keys. Spatial: 1 or 2. */}
       <div className="py-4 text-center text-xs text-text-hint">
-        {gameType === 'math' && 'type answer · enter to submit'}
-        {gameType === 'stroop' && 'select the ink color'}
-        {gameType === 'spatial' && 'press 1 for same · 2 for mirror'}
-        {gameType === 'switching' && 'press 1 or 2 to classify'}
-        {gameType === 'nback' && 'F = match · J = no match'}
-        {gameType === 'speed' && 'identify where the target appeared'}
-        {gameType === 'memory' && 'memorize the sequence \u00b7 type it back'}
+        {GAME_REGISTRY[gameType].keyboardHint}
       </div>
     </div>
   )

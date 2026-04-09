@@ -27,6 +27,7 @@
 
 import type { Question } from '@/lib/types'
 import { NBACK_LEVELS, getNBackExpectedTimeMs, GRID_SIZE } from './constants'
+import { clampDifficulty } from '@/lib/utils'
 
 // Generate a random grid position (1-9 inclusive).
 function randomPosition(): number {
@@ -77,9 +78,8 @@ function generatePositionSequence(count: number, n: number, matchRate: number): 
 // 3. For each position, determine if it matches the position N steps back
 // 4. Return array of Questions with gridPosition, nLevel, stepIndex in metadata
 export function generateNBackSequence(difficulty: number, count: number): Question[] {
-  // Clamp difficulty to valid range [1, 8]. Guard against NaN.
-  const safeDifficulty = Number.isFinite(difficulty) ? difficulty : 1
-  const clamped = Math.max(1, Math.min(safeDifficulty, NBACK_LEVELS.length))
+  // Clamp difficulty to valid range [1, 8] using shared utility
+  const clamped = clampDifficulty(difficulty, NBACK_LEVELS.length)
   const level = NBACK_LEVELS[clamped - 1]
 
   // Build the full position sequence

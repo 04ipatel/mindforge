@@ -1,3 +1,5 @@
+import { clampDifficulty } from '@/lib/utils'
+
 // =============================================================================
 // lib/games/memory/constants.ts — Memory (Digit Span) difficulty level definitions
 // =============================================================================
@@ -50,9 +52,7 @@ export const MEMORY_LEVELS: MemoryLevel[] = [
 ]
 
 // Look up the expected recall time for a given Memory difficulty level.
-// Clamps to [1, 8] range. Used by the Elo system for time multiplier calculation.
+// Uses clampDifficulty from lib/utils.ts to guard against NaN and out-of-range values.
 export function getMemoryExpectedTimeMs(difficulty: number): number {
-  const safe = Number.isFinite(difficulty) ? difficulty : 1
-  const clamped = Math.max(1, Math.min(safe, MEMORY_LEVELS.length))
-  return MEMORY_LEVELS[clamped - 1].expectedTimeMs
+  return MEMORY_LEVELS[clampDifficulty(difficulty, MEMORY_LEVELS.length) - 1].expectedTimeMs
 }

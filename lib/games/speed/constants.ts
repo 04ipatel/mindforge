@@ -1,3 +1,5 @@
+import { clampDifficulty } from '@/lib/utils'
+
 // =============================================================================
 // lib/games/speed/constants.ts — Speed of Processing difficulty level definitions
 // =============================================================================
@@ -48,11 +50,7 @@ export const SPEED_LEVELS: SpeedLevel[] = [
 ]
 
 // Look up the expected response time for a given difficulty level.
-// Clamps to the maximum level (8) if a higher value is passed — this handles
-// cases where the difficulty engine overshoots the speed game's max level.
-// Uses 1-based indexing: difficulty 1 → SPEED_LEVELS[0].
+// Uses clampDifficulty from lib/utils.ts to guard against NaN and out-of-range values.
 export function getSpeedExpectedTimeMs(difficulty: number): number {
-  const safe = Number.isFinite(difficulty) ? difficulty : 1
-  const clamped = Math.max(1, Math.min(safe, SPEED_LEVELS.length))
-  return SPEED_LEVELS[clamped - 1].expectedTimeMs
+  return SPEED_LEVELS[clampDifficulty(difficulty, SPEED_LEVELS.length) - 1].expectedTimeMs
 }
