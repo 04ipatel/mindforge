@@ -93,13 +93,13 @@ export function generateStroopQuestion(difficulty: number, existingPrompts?: Set
     attempts++
   } while (existingPrompts?.has(promptKey) && attempts < 50)
 
-  // Build the 4 choice buttons: correct answer + 3 distractors, shuffled
-  // The correct answer is always the INK color (not the word)
-  const otherColors = colors.filter(c => c.name !== inkColor.name)
-  // Take 3 random distractors from the remaining colors
-  const distractors = shuffle(otherColors).slice(0, 3)
-  // Shuffle all 4 choices so correct answer position is random
-  const choices = shuffle([inkColor, ...distractors])
+  // Use ALL colors in the active set as choices, sorted alphabetically.
+  // This keeps choice positions consistent across the entire sprint — the user
+  // can learn "blue is always key 1, green is key 2, red is key 3, yellow is key 4"
+  // and respond by position without re-reading choices each question.
+  // At levels 1-3 this is 4 choices (keys 1-4), levels 4-5 is 6 (keys 1-6),
+  // levels 6-8 is 8 (keys 1-8).
+  const choices = [...colors].sort((a, b) => a.name.localeCompare(b.name))
 
   return {
     // Prompt is the word displayed in uppercase (e.g., "RED", "BLUE")

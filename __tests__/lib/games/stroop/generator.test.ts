@@ -11,16 +11,19 @@ import { generateStroopQuestion } from '@/lib/games/stroop/generator'
 
 describe('generateStroopQuestion', () => {
   // Verifies basic question structure: uppercase color word prompt,
-  // a valid answer, correct difficulty tag, and exactly 4 answer choices
-  it('generates a question with word, ink color, and 4 choices', () => {
+  // a valid answer, correct difficulty tag, and choices matching color set size
+  it('generates a question with word, ink color, and choices', () => {
     const q = generateStroopQuestion(1)
     expect(q.prompt).toMatch(/^[A-Z]+$/) // color word in uppercase
     expect(q.answer).toBeTruthy()
     expect(q.difficulty).toBe(1)
     expect(q.metadata).toBeDefined()
     const choices = q.metadata!.choices as string[]
-    expect(choices).toHaveLength(4) // always 4 choices for keyboard input 1-4
+    expect(choices).toHaveLength(4) // level 1 uses 4 base colors
     expect(choices).toContain(q.answer) // correct answer must be among choices
+    // Choices should be alphabetically sorted for consistent positioning
+    const sorted = [...choices].sort()
+    expect(choices).toEqual(sorted)
   })
 
   // Levels 1-3 use only 4 base colors to keep the task simple

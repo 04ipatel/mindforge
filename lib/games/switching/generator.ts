@@ -95,8 +95,9 @@ function buildRuleSequence(
 // 3. For each position, generate a random number 1-9 and classify it
 // 4. Return array of Questions with rule and choices in metadata
 export function generateSwitchingSequence(difficulty: number, count: number): Question[] {
-  // Clamp difficulty to valid range [1, 8]
-  const clamped = Math.max(1, Math.min(difficulty, SWITCHING_LEVELS.length))
+  // Clamp difficulty to valid range [1, 8]. Guard against NaN.
+  const safeDifficulty = Number.isFinite(difficulty) ? difficulty : 1
+  const clamped = Math.max(1, Math.min(safeDifficulty, SWITCHING_LEVELS.length))
   const level = SWITCHING_LEVELS[clamped - 1]
 
   // Build the rule sequence for the full sprint

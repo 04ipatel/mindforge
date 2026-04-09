@@ -60,8 +60,9 @@ function sequenceToPrompt(seq: number[]): string {
 // 2. Generate random digit sequences, re-rolling duplicates
 // 3. Return array of Questions with sequence and displayDurationMs in metadata
 export function generateMemorySequence(difficulty: number, count: number): Question[] {
-  // Clamp difficulty to valid range [1, 8]
-  const clamped = Math.max(1, Math.min(difficulty, MEMORY_LEVELS.length))
+  // Clamp difficulty to valid range [1, 8]. Guard against NaN.
+  const safeDifficulty = Number.isFinite(difficulty) ? difficulty : 1
+  const clamped = Math.max(1, Math.min(safeDifficulty, MEMORY_LEVELS.length))
   const level = MEMORY_LEVELS[clamped - 1]
 
   const questions: Question[] = []

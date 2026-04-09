@@ -143,7 +143,7 @@ export function SprintView({ sprint, gameType, currentRating, onAnswer, feedback
           Math: type digits + enter. Stroop: 1-4 keys. Spatial: 1 or 2. */}
       <div className="py-4 text-center text-xs text-text-hint">
         {gameType === 'math' && 'type answer · enter to submit'}
-        {gameType === 'stroop' && 'press 1-4 to select the ink color'}
+        {gameType === 'stroop' && 'select the ink color'}
         {gameType === 'spatial' && 'press 1 for same · 2 for mirror'}
         {gameType === 'switching' && 'press 1 or 2 to classify'}
         {gameType === 'nback' && 'F = match · J = no match'}
