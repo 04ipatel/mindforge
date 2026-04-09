@@ -61,6 +61,7 @@ export const MATH_LEVELS: MathLevel[] = [
 // cases where the difficulty engine overshoots the math game's max level.
 // Uses 1-based indexing: difficulty 1 → MATH_LEVELS[0].
 export function getExpectedTimeMs(difficulty: number): number {
-  const clamped = Math.min(difficulty, MATH_LEVELS.length)
+  const safe = Number.isFinite(difficulty) ? difficulty : 1
+  const clamped = Math.max(1, Math.min(safe, MATH_LEVELS.length))
   return MATH_LEVELS[clamped - 1].expectedTimeMs
 }

@@ -132,8 +132,9 @@ export function mirrorPoints(points: Point[]): Point[] {
 // content comes from metadata.originalShape and metadata.transformedShape,
 // which the spatial-input.tsx component renders as SVG polygons.
 export function generateSpatialQuestion(difficulty: number, existingPrompts?: Set<string>): Question {
-  // Clamp difficulty to valid range [1, 8]
-  const clamped = Math.max(1, Math.min(difficulty, SPATIAL_LEVELS.length))
+  // Clamp difficulty to valid range [1, 8]. Guard against NaN.
+  const safeDifficulty = Number.isFinite(difficulty) ? difficulty : 1
+  const clamped = Math.max(1, Math.min(safeDifficulty, SPATIAL_LEVELS.length))
   const level = SPATIAL_LEVELS[clamped - 1]
 
   let shape: Point[]              // the original polygon

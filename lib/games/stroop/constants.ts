@@ -88,7 +88,8 @@ export const STROOP_LEVELS: StroopLevel[] = [
 // Clamps to [1, 8] range. Higher difficulties have shorter expected times
 // because the game demands faster automatic processing.
 export function getStroopExpectedTimeMs(difficulty: number): number {
-  const clamped = Math.max(1, Math.min(difficulty, STROOP_LEVELS.length))
+  const safe = Number.isFinite(difficulty) ? difficulty : 1
+  const clamped = Math.max(1, Math.min(safe, STROOP_LEVELS.length))
   return STROOP_LEVELS[clamped - 1].expectedTimeMs
 }
 

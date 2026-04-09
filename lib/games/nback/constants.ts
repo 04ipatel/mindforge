@@ -58,6 +58,7 @@ export const NBACK_LEVELS: NBackLevel[] = [
 // Look up the expected response time for a given N-Back difficulty level.
 // Clamps to [1, 8] range. Used by the Elo system for time multiplier calculation.
 export function getNBackExpectedTimeMs(difficulty: number): number {
-  const clamped = Math.max(1, Math.min(difficulty, NBACK_LEVELS.length))
+  const safe = Number.isFinite(difficulty) ? difficulty : 1
+  const clamped = Math.max(1, Math.min(safe, NBACK_LEVELS.length))
   return NBACK_LEVELS[clamped - 1].expectedTimeMs
 }

@@ -52,6 +52,7 @@ export const SPEED_LEVELS: SpeedLevel[] = [
 // cases where the difficulty engine overshoots the speed game's max level.
 // Uses 1-based indexing: difficulty 1 → SPEED_LEVELS[0].
 export function getSpeedExpectedTimeMs(difficulty: number): number {
-  const clamped = Math.max(1, Math.min(difficulty, SPEED_LEVELS.length))
+  const safe = Number.isFinite(difficulty) ? difficulty : 1
+  const clamped = Math.max(1, Math.min(safe, SPEED_LEVELS.length))
   return SPEED_LEVELS[clamped - 1].expectedTimeMs
 }

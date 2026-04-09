@@ -63,6 +63,7 @@ export const SPATIAL_LEVELS: SpatialLevel[] = [
 // Clamps to [1, 8] range. Higher difficulties have longer expected times
 // because more complex polygons require more mental rotation time.
 export function getSpatialExpectedTimeMs(difficulty: number): number {
-  const clamped = Math.max(1, Math.min(difficulty, SPATIAL_LEVELS.length))
+  const safe = Number.isFinite(difficulty) ? difficulty : 1
+  const clamped = Math.max(1, Math.min(safe, SPATIAL_LEVELS.length))
   return SPATIAL_LEVELS[clamped - 1].expectedTimeMs
 }

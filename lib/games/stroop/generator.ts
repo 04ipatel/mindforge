@@ -60,8 +60,9 @@ function shuffle<T>(arr: T[]): T[] {
 //
 // The player sees "RED" rendered in blue ink → correct answer is "blue"
 export function generateStroopQuestion(difficulty: number, existingPrompts?: Set<string>): Question {
-  // Clamp difficulty to valid range [1, 8]
-  const clamped = Math.max(1, Math.min(difficulty, STROOP_LEVELS.length))
+  // Clamp difficulty to valid range [1, 8]. Guard against NaN.
+  const safeDifficulty = Number.isFinite(difficulty) ? difficulty : 1
+  const clamped = Math.max(1, Math.min(safeDifficulty, STROOP_LEVELS.length))
   const level = STROOP_LEVELS[clamped - 1]
   // Get the color set for this level (4, 6, or 8 colors)
   const colors = getColorsForLevel(level.colorCount)

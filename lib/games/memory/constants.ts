@@ -52,6 +52,7 @@ export const MEMORY_LEVELS: MemoryLevel[] = [
 // Look up the expected recall time for a given Memory difficulty level.
 // Clamps to [1, 8] range. Used by the Elo system for time multiplier calculation.
 export function getMemoryExpectedTimeMs(difficulty: number): number {
-  const clamped = Math.max(1, Math.min(difficulty, MEMORY_LEVELS.length))
+  const safe = Number.isFinite(difficulty) ? difficulty : 1
+  const clamped = Math.max(1, Math.min(safe, MEMORY_LEVELS.length))
   return MEMORY_LEVELS[clamped - 1].expectedTimeMs
 }

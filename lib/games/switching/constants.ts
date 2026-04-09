@@ -79,6 +79,7 @@ export const SWITCHING_LEVELS: SwitchingLevel[] = [
 // Clamps to [1, 8] range. Mid-range levels have the highest expected times
 // because switching cost is most pronounced when first introduced.
 export function getSwitchingExpectedTimeMs(difficulty: number): number {
-  const clamped = Math.max(1, Math.min(difficulty, SWITCHING_LEVELS.length))
+  const safe = Number.isFinite(difficulty) ? difficulty : 1
+  const clamped = Math.max(1, Math.min(safe, SWITCHING_LEVELS.length))
   return SWITCHING_LEVELS[clamped - 1].expectedTimeMs
 }
