@@ -21,6 +21,7 @@
 //   - lib/games/stroop/ — generateStroopQuestion, getStroopExpectedTimeMs
 //   - lib/games/spatial/ — generateSpatialQuestion, getSpatialExpectedTimeMs
 //   - lib/games/switching/ — generateSwitchingSequence, getSwitchingExpectedTimeMs
+//   - lib/games/nback/ — generateNBackSequence, getNBackExpectedTimeMs
 //   - app/session/sprint-view.tsx — renders the active sprint UI
 //   - app/session/sprint-complete.tsx — renders between-sprint stats
 // DEPENDENTS:
@@ -51,6 +52,8 @@ import { generateSpatialQuestion } from '@/lib/games/spatial/generator'
 import { getSpatialExpectedTimeMs } from '@/lib/games/spatial/constants'
 import { generateSwitchingSequence } from '@/lib/games/switching/generator'
 import { getSwitchingExpectedTimeMs } from '@/lib/games/switching/constants'
+import { generateNBackSequence } from '@/lib/games/nback/generator'
+import { getNBackExpectedTimeMs } from '@/lib/games/nback/constants'
 import type { GameType, Question } from '@/lib/types'
 import { SprintView } from './sprint-view'
 import { SprintComplete } from './sprint-complete'
@@ -74,7 +77,7 @@ type SessionState =
 // ACTIVE_GAMES defines which game types are available in the current build.
 // Game rotation only activates when this array has 2+ entries.
 // To add a new game: add it here, add to GENERATORS, add to EXPECTED_TIME_FNS.
-const ACTIVE_GAMES: GameType[] = ['math', 'stroop', 'spatial', 'switching']
+const ACTIVE_GAMES: GameType[] = ['math', 'stroop', 'spatial', 'switching', 'nback']
 
 // pickNextGame decides whether to switch games between sprints.
 // 60% chance to switch to a different game, 40% chance to stay on the same game.
@@ -104,6 +107,7 @@ const GENERATORS: Record<string, (d: number, p?: Set<string>) => Question> = {
 // These take (difficulty, count) and return the full Question[] array.
 const BATCH_GENERATORS: Record<string, (d: number, count: number) => Question[]> = {
   switching: generateSwitchingSequence,
+  nback: generateNBackSequence,
 }
 
 // generateQuestions creates an array of unique questions for a sprint.
@@ -138,6 +142,7 @@ const EXPECTED_TIME_FNS: Record<string, (d: number) => number> = {
   stroop: getStroopExpectedTimeMs,
   spatial: getSpatialExpectedTimeMs,
   switching: getSwitchingExpectedTimeMs,
+  nback: getNBackExpectedTimeMs,
 }
 
 // Convenience wrapper around EXPECTED_TIME_FNS for cleaner call sites
