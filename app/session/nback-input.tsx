@@ -119,12 +119,14 @@ export function NBackInput({ question, onSubmit, feedback }: NBackInputProps) {
         })}
       </div>
 
-      {/* Feedback text shown after answering — correct (green) or incorrect (red) */}
-      {feedback && (
-        <div className={`text-sm font-medium ${feedback.correct ? 'text-positive' : 'text-negative'}`}>
-          {feedback.correct ? 'Correct' : `Incorrect — ${feedback.correctAnswer}`}
-        </div>
-      )}
+      {/* Fixed-height feedback area — always present to prevent layout shift */}
+      <div className="h-5 flex items-center justify-center">
+        {feedback && (
+          <span className={`text-sm font-medium ${feedback.correct ? 'text-positive' : 'text-negative'}`}>
+            {feedback.correct ? 'Correct' : `Incorrect — ${feedback.correctAnswer}`}
+          </span>
+        )}
+      </div>
 
       {/* Choice buttons: Match (F) and No Match (J).
           During feedback, the correct choice gets a green border and the
